@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 import { auth } from '@/utils/firebase';
 import { signInWithCustomToken } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
 
 export default function Callback() {
   const router = useRouter();

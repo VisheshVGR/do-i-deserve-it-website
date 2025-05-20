@@ -12,6 +12,7 @@ import {
 import HomeIcon from '@mui/icons-material/Home';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import TargetIcon from '@mui/icons-material/TrackChanges';
+import GroupIcon from '@mui/icons-material/Group';
 import ReportIcon from '@mui/icons-material/Assessment';
 import ReminderIcon from '@mui/icons-material/Notifications';
 import StarIcon from '@mui/icons-material/Star';
@@ -22,11 +23,12 @@ import { useRouter } from 'next/navigation';
 
 const routes = [
   { path: '/', label: 'Home', icon: <HomeIcon /> },
-  { path: '/todo', label: 'Todo', icon: <CheckCircleIcon /> },
-  { path: '/target', label: 'Target', icon: <TargetIcon /> },
-  { path: '/target/report', label: 'Report', icon: <ReportIcon />, nested: true },
-  { path: '/reminder', label: 'Reminder', icon: <ReminderIcon /> },
   { path: '/do-i-deserve-it', label: 'Do I Deserve It', icon: <StarIcon /> },
+  { path: '/target', label: 'Target', icon: <TargetIcon /> },
+  { path: '/target/friends', label: 'Friends', icon: <GroupIcon />, nested: true },
+  { path: '/target/report', label: 'Report', icon: <ReportIcon />, nested: true },
+  { path: '/todo', label: 'Todo', icon: <CheckCircleIcon /> },
+  { path: '/reminder', label: 'Reminder', icon: <ReminderIcon /> },
 ];
 
 export default function LeftDrawer({ open, onClose }) {
@@ -35,7 +37,7 @@ export default function LeftDrawer({ open, onClose }) {
 
   const handleNavigation = (path) => {
     router.push(path);
-    onClose(); // Close the drawer after navigation
+    onClose();
   };
 
   return (
@@ -44,12 +46,12 @@ export default function LeftDrawer({ open, onClose }) {
         <List>
           {routes.map((route) => (
             <ListItem
-              button // Ensure this is a boolean
+              button
               key={route.path}
               onClick={() => handleNavigation(route.path)}
               sx={{
-                pl: route.nested ? 4 : 2, // Indent nested routes
-                cursor: 'pointer', // Change mouse pointer to cursor
+                pl: route.nested ? 4 : 2,
+                cursor: 'pointer',
               }}
             >
               <ListItemIcon>{route.icon}</ListItemIcon>
@@ -57,13 +59,7 @@ export default function LeftDrawer({ open, onClose }) {
             </ListItem>
           ))}
           {/* Light/Dark Mode Toggle */}
-          <ListItem
-            button // Ensure this is a boolean
-            onClick={toggleTheme}
-            sx={{
-              cursor: 'pointer', // Change mouse pointer to cursor
-            }}
-          >
+          <ListItem button onClick={toggleTheme} sx={{ cursor: 'pointer' }}>
             <ListItemIcon>
               {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
             </ListItemIcon>
