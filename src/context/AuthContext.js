@@ -47,7 +47,6 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     removeCookie('firebaseToken');
-    router.push('/login');
   };
 
   return (

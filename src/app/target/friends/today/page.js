@@ -1,4 +1,8 @@
-export default function FriendsTodayPage() {
+'use client';
+
+import withAuth from '@/utils/withAuth';
+
+function FriendsTodayPage() {
   return (
     <div>
       <h1>Friends Today</h1>
@@ -6,3 +10,5 @@ export default function FriendsTodayPage() {
     </div>
   );
 }
+
+export default withAuth(FriendsTodayPage);

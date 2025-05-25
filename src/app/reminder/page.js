@@ -1,4 +1,8 @@
-export default function Reminder() {
+'use client'
+
+import withAuth from '@/utils/withAuth';
+
+function Reminder() {
   return (
     <div>
       <h1>reminder</h1>
@@ -6,3 +10,5 @@ export default function Reminder() {
     </div>
   );
 }
+
+export default withAuth(Reminder);

@@ -1,4 +1,8 @@
-export default function DoIDeserveIt() {
+'use client'
+
+import withAuth from '@/utils/withAuth';
+
+function DoIDeserveIt() {
   return (
     <div>
       <h1>DoIDeserveIt</h1>
@@ -6,3 +10,5 @@ export default function DoIDeserveIt() {
     </div>
   );
 }
+
+export default withAuth(DoIDeserveIt);

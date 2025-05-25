@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCookies } from 'react-cookie';
 import { auth } from '@/utils/firebase';
 import { signInWithCustomToken } from 'firebase/auth';
+import UniversalLoader from '@/components/UniversalLoader';
 
 export default function Callback() {
   const router = useRouter();
   const [_, setCookie] = useCookies(['firebaseToken']);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -50,52 +52,12 @@ export default function Callback() {
       } else {
         console.error('Authentication failed: Missing token');
       }
+      setLoading(false);
     };
-
-    //////////////////////////////////
-
-    // const testFirestoreQuery = async () => {
-    //   try {
-    //     // Ensure the user is authenticated
-    //     const user = auth.currentUser;
-    //     if (!user) {
-    //       console.error('User is not authenticated');
-    //       return;
-    //     }
-
-    //     console.log('Authenticated user:', user);
-
-    //     // Initialize Firestore
-    //     const db = getFirestore();
-
-    //     // Query a document from Firestore
-    //     const docRef = doc(db, 'users', 'testUserId'); // Replace 'testUserId' with a valid document ID
-    //     const docSnap = await getDoc(docRef);
-
-    //     if (docSnap.exists()) {
-    //       console.log('Document data:', docSnap.data());
-    //     } else {
-    //       console.log('No such document!');
-    //     }
-    //   } catch (error) {
-    //     console.error('Error querying Firestore:', error);
-    //   }
-    // };
-    // testFirestoreQuery();
-    // // Test sign-in with a valid custom token
-    // console.log('Firebase Auth Object:', auth);
-    // const testToken =
-    //   'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJodHRwczovL2lkZW50aXR5dG9vbGtpdC5nb29nbGVhcGlzLmNvbS9nb29nbGUuaWRlbnRpdHkuaWRlbnRpdHl0b29sa2l0LnYxLklkZW50aXR5VG9vbGtpdCIsImlhdCI6MTc0NjMzNjI3NywiZXhwIjoxNzQ2MzM5ODc3LCJpc3MiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0Bkby1pLWRlc2VydmUtaXQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0Bkby1pLWRlc2VydmUtaXQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJ1aWQiOiIxMDQ2ODkyODU5MjY4MzgxNjMyOTgifQ.FztBswHTtS_E3R2VwrxE3L1iaV0kJ_2M3TPf2E26ygY90M-EOPBUDADLJlITBSC9_boZhME4QhujhJRQHd5eSj4QUmrce1aQvPpplLkVT6TnB6n-s-5LKef4ARpXCDL9PAvXQJYeodkuF34NpyClAgkCSGDuQF7FdkVACaPQ_iVLT3s55AtUeQSVxXoAifOa4D9Rzqra03JpqHrWA6EpQhnjY7e3la1P7WBDXla0pkUUd7v-gZdf2BSOwiXXDugyDkJKeTlpN3pvMD5RuOOdsp14eXH7UTq7sREB5hhmpUjXMV1WjuBSLBiG8a8fMQZcUAjztGbMuJEC-OxXvaON5A';
-    // signInWithCustomToken(auth, testToken)
-    //   .then((userCredential) => {
-    //     console.log('@@Successfully signed in:', userCredential.user);
-    //   })
-    //   .catch((error) => {
-    //     console.error('@@Error signing in:', error);
-    //   });
 
     handleCallback();
   }, [setCookie, router]);
 
+  if (loading) return <UniversalLoader />;
   return <p>Logging in...</p>;
 }

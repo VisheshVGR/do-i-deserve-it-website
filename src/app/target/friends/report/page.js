@@ -1,4 +1,8 @@
-export default function FriendsReportPage() {
+'use client';
+
+import withAuth from '@/utils/withAuth';
+
+function FriendsReportPage() {
   return (
     <div>
       <h1>Friends Report</h1>
@@ -6,3 +10,5 @@ export default function FriendsReportPage() {
     </div>
   );
 }
+
+export default withAuth(FriendsReportPage);

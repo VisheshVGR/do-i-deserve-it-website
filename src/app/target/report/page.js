@@ -1,4 +1,8 @@
-export default function Report() {
+'use client';
+
+import withAuth from '@/utils/withAuth';
+
+function Report() {
   return (
     <div>
       <h1>Report</h1>
@@ -6,3 +10,5 @@ export default function Report() {
     </div>
   );
 }
+
+export default withAuth(Report);

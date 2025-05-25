@@ -15,7 +15,9 @@
     "@mui/material": "^7.0.2",
     "axios": "^1.9.0",
     "firebase": "^11.6.1",
+    "js-cookie": "^3.0.5",
     "next": "^15.3.1",
+    "notistack": "^3.0.2",
     "react": "^19.1.0",
     "react-cookie": "^8.0.1",
     "react-dom": "^19.1.0"

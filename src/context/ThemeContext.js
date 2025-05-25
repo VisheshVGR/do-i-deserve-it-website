@@ -20,15 +20,14 @@ export const ThemeProvider = ({ children }) => {
       setMode(prefersDarkMode ? 'dark' : 'light');
     }
   }, []);
-
-  // Save theme preference to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('theme', mode);
-  }, [mode]);
-
-  // Toggle between light and dark mode
+  
+  // Toggle between light and dark mode and save to localStorage
   const toggleTheme = () => {
-    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+    setMode((prevMode) => {
+      const newMode = prevMode === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme', newMode);
+      return newMode;
+    });
   };
 
   // Create MUI theme based on the current mode
