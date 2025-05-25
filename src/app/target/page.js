@@ -16,6 +16,7 @@ import {
   TextField,
   Switch,
   FormControlLabel,
+  ButtonGroup,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DoneIcon from '@mui/icons-material/Done';
@@ -29,6 +30,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { useLoader } from '@/context/LoaderContext';
 import { useSnackbarUtils } from '@/context/SnackbarContext';
 import api from '@/utils/axios';
+import tinycolor from 'tinycolor2';
 
 // Returns today's date in YYYY-MM-DD format
 function getToday() {
@@ -128,11 +130,11 @@ function Target() {
       }
       // For bool steps, true if count exists
       else if (step.type === 'bool') {
-        initial[step.id] = !!(
-          step.targetStepData &&
+        initial[step.id] = step.targetStepData &&
           step.targetStepData[0] &&
           step.targetStepData[0].count
-        );
+          ? 1
+          : 0;
       }
     });
     setInitialStepInputs(initial);
@@ -348,6 +350,16 @@ function FloatingMainSpeedDial({
   );
 }
 
+// Returns 'black' or 'white' based on background color for best contrast
+function getContrastText(bgColor) {
+  return tinycolor(bgColor).isLight() ? '#222' : '#fff';
+}
+
+// Returns a transparent version of the color for the details section
+function getSubtleBg(bgColor) {
+  return tinycolor(bgColor).setAlpha(0.08).toRgbString();
+}
+
 // Accordion for a single heading and its steps
 function HeadingAccordion({
   heading,
@@ -362,28 +374,53 @@ function HeadingAccordion({
   handleIncrement,
   handleDecrement,
 }) {
+  // Use heading.color or fallback
+  const headingColor = heading.color || '#FF7043';
+  const headingTextColor = getContrastText(headingColor);
+  const detailsBg = getSubtleBg(headingColor);
+
   return (
     <Accordion key={heading.id} defaultExpanded>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon sx={{ color: headingTextColor }} />}
+        sx={{
+          bgcolor: headingColor,
+          color: headingTextColor,
+          fontWeight: 700,
+          borderTopLeftRadius: 12,
+          borderTopRightRadius: 12,
+          '& .MuiTypography-root': {
+            fontWeight: 700,
+            color: headingTextColor,
+          },
+        }}
+      >
         <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-          <Typography>{heading.name}</Typography>
+          <Typography sx={{ fontWeight: 700, color: headingTextColor }}>
+            {heading.name}
+          </Typography>
         </Box>
         {/* Edit heading button (only in edit mode and not for 'no-heading') */}
         {editMode && heading.id !== 'no-heading' && (
           <IconButton
             size="small"
-            sx={{ ml: 1 }}
+            sx={{ ml: 1, color: headingTextColor }}
             onClick={(e) => {
               e.stopPropagation();
               handleEditHeading(heading.id);
             }}
-            color="primary"
           >
             <EditIcon fontSize="small" />
           </IconButton>
         )}
       </AccordionSummary>
-      <AccordionDetails>
+      <AccordionDetails
+        sx={{
+          bgcolor: detailsBg,
+          borderBottomLeftRadius: 12,
+          borderBottomRightRadius: 12,
+        }}
+      >
         {/* Show "No steps" if there are no steps */}
         {steps.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
@@ -570,51 +607,73 @@ function StepEditOrStatus({
     );
   }
 
-  // For count steps, show increment/decrement and colored input
-  return (
-    <>
-      <IconButton
-        size="small"
-        color="error"
-        onClick={() => handleDecrement(step, todayShort)}
-        disabled={stepLoading[step.id]}
-      >
-        <RemoveIcon />
-      </IconButton>
-      <TextField
-        type="number"
-        size="small"
-        value={count}
-        onChange={(e) =>
-          handleStepInput(step.id, Math.max(0, Number(e.target.value)))
-        }
+  // For count steps, show increment/decrement and current value as a button group
+  if (step.type === 'count') {
+    return (
+      <ButtonGroup
+        variant="outlined"
         sx={{
-          width: 60,
-          mx: 1,
-          '& .MuiInputBase-input': {
-            textAlign: 'center',
-            fontWeight: 600,
-            bgcolor: isKudos
-              ? 'warning.light'
-              : count === 0
-              ? 'error.light'
-              : 'success.light',
-            borderRadius: 2,
-            transition: 'background 0.2s',
-          },
+          borderRadius: 8,
+          bgcolor: isKudos
+            ? 'warning.light'
+            : count === 0
+            ? 'error.light'
+            : 'success.light',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          ml: 2,
+          overflow: 'hidden',
         }}
-        inputProps={{ min: 0 }}
-      />
-      <IconButton
-        size="small"
-        color="primary"
-        onClick={() => handleIncrement(step, todayShort)}
-        disabled={stepLoading[step.id]}
+        disableElevation
       >
-        <AddCircleIcon />
-      </IconButton>
-    </>
-  );
+        <IconButton
+          size="small"
+          color="error"
+          onClick={() => handleDecrement(step, todayShort)}
+          disabled={stepLoading[step.id]}
+          sx={{
+            borderRadius: 0,
+            bgcolor: 'background.paper',
+            borderRight: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <RemoveIcon />
+        </IconButton>
+        <Box
+          sx={{
+            px: 2,
+            minWidth: 36,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 700,
+            fontSize: 18,
+            color: 'text.primary',
+            bgcolor: 'transparent',
+            userSelect: 'none',
+          }}
+        >
+          {count}
+        </Box>
+        <IconButton
+          size="small"
+          color="primary"
+          onClick={() => handleIncrement(step, todayShort)}
+          disabled={stepLoading[step.id]}
+          sx={{
+            borderRadius: 0,
+            bgcolor: 'background.paper',
+            borderLeft: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          <AddCircleIcon />
+        </IconButton>
+      </ButtonGroup>
+    );
+  }
+
+  return null;
 }
 
 export default withAuth(Target);

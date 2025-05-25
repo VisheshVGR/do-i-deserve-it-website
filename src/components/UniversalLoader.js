@@ -18,7 +18,7 @@ export default function UniversalLoader() {
       }}
     >
       <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
-        <CircularProgress color="secondary" />
+        <CircularProgress color="inherit" />
         <Typography variant="body2" sx={{ mt: 1 }}>Loading...</Typography>
         <Button
           variant="outlined"

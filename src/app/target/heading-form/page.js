@@ -4,6 +4,7 @@ import withAuth from '@/utils/withAuth';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Box, Typography, TextField, Button, Stack, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
+import { ChromePicker } from 'react-color';
 import api from '@/utils/axios';
 import { useLoader } from '@/context/LoaderContext';
 import { useSnackbarUtils } from '@/context/SnackbarContext';
@@ -16,14 +17,19 @@ function HeadingForm() {
   const { notify } = useSnackbarUtils();
 
   const [name, setName] = useState('');
+  const [color, setColor] = useState('#FF7043');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false); // Add this state
 
   // Fetch heading if editing
   useEffect(() => {
     if (!id) return;
     showLoader();
     api.get(`targetHeadings/${id}`)
-      .then(res => setName(res.data.name))
+      .then(res => {
+        setName(res.data.name);
+        setColor(res.data.color || '#FF7043');
+      })
       .catch(() => notify('Failed to fetch heading', 'error'))
       .finally(() => hideLoader());
   }, [id, showLoader, hideLoader, notify]);
@@ -33,10 +39,10 @@ function HeadingForm() {
     showLoader();
     try {
       if (id) {
-        await api.put(`targetHeadings/${id}`, { name });
+        await api.put(`targetHeadings/${id}`, { name, color });
         notify('Heading updated!', 'success');
       } else {
-        await api.post('targetHeadings', { name });
+        await api.post('targetHeadings', { name, color });
         notify('Heading added!', 'success');
       }
       setTimeout(() => router.push('/target'), 700);
@@ -73,6 +79,42 @@ function HeadingForm() {
           required
           margin="normal"
         />
+        <Box sx={{ mt: 2, mb: 2, display: 'flex', alignItems: 'center' }}>
+          <Typography variant="subtitle2" gutterBottom sx={{ mb: 0, pr: 1 }}>
+            Heading Color
+          </Typography>
+          {/* Color circle next to text */}
+          <Box
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              bgcolor: color,
+              border: '2px solid #ccc',
+              cursor: 'pointer',
+              ml: 2,
+              display: 'inline-block',
+            }}
+            onClick={() => setPickerOpen(true)}
+            title="Click to pick color"
+          />
+          {/* Color picker as popup dialog */}
+          <Dialog open={pickerOpen} onClose={() => setPickerOpen(false)}>
+            <DialogTitle>Pick a Color</DialogTitle>
+            <DialogContent>
+              <ChromePicker
+                color={color}
+                onChange={color => setColor(color.hex)}
+                disableAlpha
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setPickerOpen(false)} variant="outlined">
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
           <Button
             type="submit"
