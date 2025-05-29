@@ -1,7 +1,7 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import withAuth from '@/utils/withAuth';
-import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -19,7 +19,7 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Switch
+  Switch,
 } from '@mui/material';
 import FormLabel from '@mui/material/FormLabel';
 import RadioGroup from '@mui/material/RadioGroup';
@@ -28,6 +28,9 @@ import Radio from '@mui/material/Radio';
 import api from '@/utils/axios';
 import { useLoader } from '@/context/LoaderContext';
 import { useSnackbarUtils } from '@/context/SnackbarContext';
+import IconPickerDialog from '@/components/IconPickerDialog';
+import * as MuiIcons from '@mui/icons-material';
+import Divider from '@mui/material/Divider';
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -47,12 +50,15 @@ function StepForm() {
   const [targetHeadingId, setTargetHeadingId] = useState('');
   const [headings, setHeadings] = useState([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [icon, setIcon] = useState('Star'); // default icon
+  const [iconPickerOpen, setIconPickerOpen] = useState(false);
 
   // Fetch headings for dropdown
   useEffect(() => {
     showLoader();
-    api.get('targetHeadings')
-      .then(res => setHeadings(res.data))
+    api
+      .get('targetHeadings')
+      .then((res) => setHeadings(res.data))
       .catch(() => setHeadings([]))
       .finally(() => hideLoader());
   }, [showLoader, hideLoader]);
@@ -61,8 +67,9 @@ function StepForm() {
   useEffect(() => {
     if (!id) return;
     showLoader();
-    api.get(`targetSteps/${id}`)
-      .then(res => {
+    api
+      .get(`targetSteps/${id}`)
+      .then((res) => {
         setTitle(res.data.title);
         setDescription(res.data.description);
         setType(res.data.type);
@@ -70,14 +77,15 @@ function StepForm() {
         setIsPublic(res.data.isPublic);
         setStatus(res.data.status);
         setTargetHeadingId(res.data.targetHeadingId || '');
+        setIcon(res.data.icon || 'Star');
       })
       .catch(() => notify('Failed to fetch step', 'error'))
       .finally(() => hideLoader());
   }, [id, showLoader, hideLoader, notify]);
 
   const handleDayToggle = (day) => {
-    setDays(prev =>
-      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    setDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
   };
 
@@ -85,7 +93,16 @@ function StepForm() {
     e.preventDefault();
     showLoader();
     try {
-      const payload = { title, description, type, days, isPublic, targetHeadingId: targetHeadingId || "" };
+      const payload = {
+        title,
+        description,
+        type,
+        days,
+        isPublic,
+        targetHeadingId: targetHeadingId || '',
+        icon,
+      };
+      console.log ('Payload:', payload);
       if (id) {
         await api.put(`targetSteps/${id}`, payload);
         notify('Step details updated!', 'success');
@@ -95,7 +112,10 @@ function StepForm() {
       }
       setTimeout(() => router.push('/target'), 700);
     } catch (err) {
-      notify(err.response?.data?.error || err.message || 'Failed to save step', 'error');
+      notify(
+        err.response?.data?.error || err.message || 'Failed to save step',
+        'error'
+      );
     }
     hideLoader();
   };
@@ -107,7 +127,10 @@ function StepForm() {
       notify('Step deleted!', 'success');
       setTimeout(() => router.push('/target'), 700);
     } catch (err) {
-      notify(err.response?.data?.error || err.message || 'Failed to delete step', 'error');
+      notify(
+        err.response?.data?.error || err.message || 'Failed to delete step',
+        'error'
+      );
     }
     setConfirmOpen(false);
     hideLoader();
@@ -120,21 +143,74 @@ function StepForm() {
       notify('Status updated!', 'success');
       setTimeout(() => router.push('/target'), 700);
     } catch (err) {
-      notify(err.response?.data?.error || err.message || 'Failed to update status', 'error');
+      notify(
+        err.response?.data?.error || err.message || 'Failed to update status',
+        'error'
+      );
     }
     hideLoader();
   };
 
   return (
-    <Box sx={{ maxWidth: 500, mx: 'auto', my: 6 }}>
+    <Box sx={{ maxWidth: 600, mx: 'auto', my: 6 }}>
       <Typography variant="h5" gutterBottom>
         {id ? 'Edit Target Step' : 'Add Target Step'}
       </Typography>
       <form onSubmit={handleDetailsUpdate}>
+        {/* Heading selection */}
+        <FormControl fullWidth margin="normal">
+          <InputLabel id="heading-label">Heading</InputLabel>
+          <Select
+            labelId="heading-label"
+            value={targetHeadingId}
+            label="Heading"
+            onChange={(e) => setTargetHeadingId(e.target.value)}
+          >
+            <MenuItem value="">None</MenuItem>
+            {headings.map((h) => (
+              <MenuItem key={h.id} value={h.id}>
+                {h.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* Step Icon row: text left, icon picker right */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            my: 2,
+          }}
+        >
+          <Typography variant="subtitle2">Icon</Typography>
+          <Button
+            variant="outlined"
+            startIcon={
+              MuiIcons[icon] ? (
+                React.createElement(MuiIcons[icon])
+              ) : (
+                <MuiIcons.Star />
+              )
+            }
+            onClick={() => setIconPickerOpen(true)}
+          >
+            {icon}
+          </Button>
+        </Box>
+        <IconPickerDialog
+          open={iconPickerOpen}
+          onClose={() => setIconPickerOpen(false)}
+          onSelect={setIcon}
+          value={icon}
+        />
+
+        {/* Title & Description */}
         <TextField
           label="Title"
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={(e) => setTitle(e.target.value)}
           fullWidth
           required
           margin="normal"
@@ -142,90 +218,95 @@ function StepForm() {
         <TextField
           label="Description"
           value={description}
-          onChange={e => setDescription(e.target.value)}
+          onChange={(e) => setDescription(e.target.value)}
           fullWidth
           margin="normal"
           multiline
           minRows={4}
           maxRows={8}
         />
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="heading-label">Heading</InputLabel>
-          <Select
-            labelId="heading-label"
-            value={targetHeadingId}
-            label="Heading"
-            onChange={e => setTargetHeadingId(e.target.value)}
-          >
-            <MenuItem value="">None</MenuItem>
-            {headings.map(h => (
-              <MenuItem key={h.id} value={h.id}>{h.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        {/* Type row: label left, radios right */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2, mb: 2 }}>
-          <FormLabel component="legend" sx={{ minWidth: 60, mr: 2 }}>Type</FormLabel>
+
+        {/* Type row */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            my: 2,
+          }}
+        >
+          <FormLabel component="legend" sx={{ minWidth: 60, mr: 2 }}>
+            Type
+          </FormLabel>
           <RadioGroup
             row
             value={type}
-            onChange={e => setType(e.target.value)}
+            onChange={(e) => setType(e.target.value)}
             sx={{ ml: 1 }}
           >
-            <FormControlLabel value="bool" control={<Radio />} label="Boolean" />
+            <FormControlLabel
+              value="bool"
+              control={<Radio />}
+              label="Boolean"
+            />
             <FormControlLabel value="count" control={<Radio />} label="Count" />
           </RadioGroup>
         </Box>
-        {/* Days: wrap if overflow */}
-        <FormControl component="fieldset" margin="normal" sx={{ width: '100%' }}>
-          <FormLabel component="legend">Days (Kudos for attending on extra days)</FormLabel>
+
+        {/* Days row */}
+        <FormControl
+          component="fieldset"
+          margin="normal"
+          sx={{ width: '100%' }}
+        >
+          <FormLabel component="legend">
+            Days (Kudos for attending on extra days)
+          </FormLabel>
           <Box
             sx={{
               display: 'flex',
               flexWrap: 'wrap',
               gap: 1,
-              mt: 1,
+              mt: 2,
               width: '100%',
+              justifyContent: 'space-between',
             }}
           >
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => {
-              const short = day[0];
-              const isSelected = days.includes(day.slice(0, 3));
-              return (
-                <Box
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(
+              (day, idx) => (
+                <Button
                   key={day}
-                  onClick={() => handleDayToggle(day.slice(0, 3))}
-                  sx={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    bgcolor: isSelected ? 'success.main' : 'grey.300',
-                    color: isSelected ? 'common.white' : 'text.primary',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    fontSize: 18,
-                    userSelect: 'none',
-                    transition: 'background 0.2s'
-                  }}
+                  variant={days.includes(day) ? 'contained' : 'outlined'}
+                  onClick={() => handleDayToggle(day)}
+                  size="small"
                 >
-                  {short}
-                </Box>
-              );
-            })}
+                  {day}
+                </Button>
+              )
+            )}
           </Box>
         </FormControl>
-        {/* Public switch: label left, switch right, on its own line */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 3, mb: 1 }}>
-          <FormLabel component="legend" sx={{ minWidth: 60, mr: 2 }}>Public (Friends can see Progress...)</FormLabel>
+
+        {/* Public switch */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            my: 2,
+          }}
+        >
+          <FormLabel component="legend" sx={{ minWidth: 60, mr: 2 }}>
+            Public (Friends can see Progress...)
+          </FormLabel>
           <Switch
             checked={isPublic}
-            onChange={e => setIsPublic(e.target.checked)}
+            onChange={(e) => setIsPublic(e.target.checked)}
             color="success"
           />
         </Box>
+
+        {/* Submit/Cancel Buttons */}
         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
           <Button
             type="submit"
@@ -246,57 +327,76 @@ function StepForm() {
             Cancel
           </Button>
         </Stack>
+
+        {/* Divider before status update */}
+        {id && <Divider sx={{ my: 3 }} />}
+        
+        {/* Status (if editing) */}
+        {id && (
+          <FormControl fullWidth margin="normal" sx={{ mt: 3 }}>
+            <InputLabel id="status-label">Status</InputLabel>
+            <Select
+              labelId="status-label"
+              value={status}
+              label="Status"
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={open}
+            >
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="suspended">Suspended</MenuItem>
+              <MenuItem value="completed">Completed</MenuItem>
+            </Select>
+          </FormControl>
+        )}
+
+        {/* Status update button */}
+        {id && (
+          <Button
+            variant="outlined"
+            color="info"
+            fullWidth
+            sx={{ mb: 2 }}
+            disabled={open}
+            onClick={handleStatusUpdate}
+          >
+            Update Status
+          </Button>
+        )}
+
+        {/* Divider before delete */}
+        {id && <Divider sx={{ my: 3 }} />}
+
+        {/* Delete button */}
         {id && (
           <>
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="status-label">Status</InputLabel>
-              <Select
-                labelId="status-label"
-                value={status}
-                label="Status"
-                onChange={e => setStatus(e.target.value)}
-                disabled={open}
-              >
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="suspended">Suspended</MenuItem>
-                <MenuItem value="completed">Completed</MenuItem>
-              </Select>
-            </FormControl>
-            <Button
-              variant="outlined"
-              color="info"
-              fullWidth
-              sx={{ mt: 1 }}
-              disabled={open}
-              onClick={handleStatusUpdate}
-            >
-              Update Status
-            </Button>
             <Button
               variant="outlined"
               color="error"
               fullWidth
-              sx={{ mt: 2 }}
+              sx={{ mb: 2 }}
               disabled={open}
               onClick={() => setConfirmOpen(true)}
             >
               {'Delete'}
             </Button>
-            <Dialog
-              open={confirmOpen}
-              onClose={() => setConfirmOpen(false)}
-            >
+            <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
               <DialogTitle>Confirm Delete</DialogTitle>
               <DialogContent>
                 <DialogContentText>
-                  Are you sure you want to delete this step? This action cannot be undone.
+                  Are you sure you want to delete this step? This action cannot
+                  be undone.
                 </DialogContentText>
               </DialogContent>
               <DialogActions>
                 <Button onClick={() => setConfirmOpen(false)} color="primary">
                   Cancel
                 </Button>
-                <Button onClick={handleDelete} color="error" variant="contained" disabled={open}>
+                <Button
+                  onClick={handleDelete}
+                  color="error"
+                  variant="contained"
+                  disabled={open}
+                >
                   {'Delete'}
                 </Button>
               </DialogActions>

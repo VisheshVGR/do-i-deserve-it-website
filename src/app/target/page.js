@@ -31,6 +31,7 @@ import { useLoader } from '@/context/LoaderContext';
 import { useSnackbarUtils } from '@/context/SnackbarContext';
 import api from '@/utils/axios';
 import tinycolor from 'tinycolor2';
+import { ICON_MAP } from '@/utils/muiIcons'; // Add this import at the top
 
 // Returns today's date in YYYY-MM-DD format
 function getToday() {
@@ -440,6 +441,7 @@ function HeadingAccordion({
               handleEditStep={handleEditStep}
               handleIncrement={handleIncrement}
               handleDecrement={handleDecrement}
+              headingColor={heading.color}
             />
           ))
         )}
@@ -459,30 +461,52 @@ function StepRow({
   handleEditStep,
   handleIncrement,
   handleDecrement,
+  headingColor, // <-- Pass this from HeadingAccordion
 }) {
-  // Current value for this step
   const count = stepInputs[step.id] ?? 0;
-  // Is this a kudos day for count steps?
   const isKudos =
     step.type === 'count' &&
     step.days &&
     !step.days.includes(todayShort) &&
     count > 0;
-  // Is this a kudos day for bool steps?
   const isBoolKudos =
     step.type === 'bool' &&
     step.days &&
     !step.days.includes(todayShort) &&
     count > 0;
 
+  const IconComp = ICON_MAP[step.icon] || ICON_MAP['Star'];
+  const hasDescription = !!step.description;
+
   return (
-    <Box key={step.id} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+    <Box
+      key={step.id}
+      sx={{
+        display: 'flex',
+        alignItems: hasDescription ? 'flex-start' : 'center',
+        mb: 1,
+        px: 2,
+        py: 1,
+        transition: 'background 0.2s',
+        '&:hover': {
+          backgroundColor: 'action.hover', // MUI's default hover color
+        },
+        cursor: 'default', // No pointer/click effect
+        borderRadius: 2,
+      }}
+    >
+      {/* Icon with heading color */}
+      <Box sx={{ mr: 2, mt: hasDescription ? '2px' : 0, display: 'flex', alignItems: 'center' }}>
+        <IconComp fontSize="large" sx={{ color: headingColor || 'primary.main' }} />
+      </Box>
       {/* Step title and description */}
-      <Box sx={{ flexGrow: 1 }}>
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: hasDescription ? 'flex-start' : 'center' }}>
         <Typography fontWeight={500}>{step.title}</Typography>
-        <Typography variant="body2" color="text.secondary">
-          {step.description}
-        </Typography>
+        {hasDescription && (
+          <Typography variant="body2" color="text.secondary">
+            {step.description}
+          </Typography>
+        )}
       </Box>
       {/* Render controls/status for this step */}
       <StepEditOrStatus
