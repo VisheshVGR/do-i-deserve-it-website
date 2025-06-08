@@ -19,7 +19,9 @@ export default function UniversalLoader() {
     >
       <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
         <CircularProgress color="inherit" />
-        <Typography variant="body2" sx={{ mt: 1 }}>Loading...</Typography>
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          Loading...
+        </Typography>
         <Button
           variant="outlined"
           color="inherit"
@@ -27,7 +29,7 @@ export default function UniversalLoader() {
           onClick={hideLoader}
           sx={{ mt: 1, color: '#fff', borderColor: '#fff' }}
         >
-          Close Loading
+          Close Loader
         </Button>
       </Box>
     </Backdrop>

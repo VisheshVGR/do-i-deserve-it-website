@@ -89,35 +89,33 @@ function StepForm() {
     );
   };
 
-  const handleDetailsUpdate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     showLoader();
     try {
       const payload = {
-        title,
-        description,
+        title: title.trim(),
+        targetHeadingId,
         type,
-        days,
-        isPublic,
-        targetHeadingId: targetHeadingId || '',
-        icon,
+        goal: type === 'number' ? Number(goal) : undefined,
+        days: type === 'custom' ? days : undefined
       };
-      console.log ('Payload:', payload);
+
       if (id) {
         await api.put(`targetSteps/${id}`, payload);
-        notify('Step details updated!', 'success');
+        notify('Step updated!', 'success');
       } else {
         await api.post('targetSteps', payload);
         notify('Step added!', 'success');
       }
-      setTimeout(() => router.push('/target'), 700);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      router.push('/target');
+      await new Promise(resolve => setTimeout(resolve, 100));
+      hideLoader();
     } catch (err) {
-      notify(
-        err.response?.data?.error || err.message || 'Failed to save step',
-        'error'
-      );
+      notify(err.response?.data?.error || 'Failed to save step', 'error');
+      hideLoader();
     }
-    hideLoader();
   };
 
   const handleDelete = async () => {
@@ -156,7 +154,7 @@ function StepForm() {
       <Typography variant="h5" gutterBottom>
         {id ? 'Edit Target Step' : 'Add Target Step'}
       </Typography>
-      <form onSubmit={handleDetailsUpdate}>
+      <form onSubmit={handleSubmit}>
         {/* Heading selection */}
         <FormControl fullWidth margin="normal">
           <InputLabel id="heading-label">Heading</InputLabel>

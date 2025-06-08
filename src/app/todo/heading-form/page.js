@@ -25,7 +25,7 @@ function HeadingForm() {
   useEffect(() => {
     if (!id) return;
     showLoader();
-    api.get(`targetHeadings/${id}`)
+    api.get(`todoHeadings/${id}`)  // Changed from targetHeadings to todoHeadings
       .then(res => {
         setName(res.data.name);
         setColor(res.data.color || '#FF7043');
@@ -40,32 +40,29 @@ function HeadingForm() {
     try {
       const payload = {
         name: name.trim(),
-        color: color || undefined
+        color: color || undefined, // Use undefined for optional color
       };
 
       if (id) {
-        await api.put(`targetHeadings/${id}`, payload);
-        notify('Heading updated!', 'success');
+        await api.put(`todoHeadings/${id}`, payload);
+        notify('Todo heading updated!', 'success');
       } else {
-        await api.post('targetHeadings', payload);
-        notify('Heading added!', 'success');
+        await api.post('todoHeadings', payload);
+        notify('Todo heading added!', 'success');
       }
-      await new Promise(resolve => setTimeout(resolve, 500));
-      router.push('/target');
-      await new Promise(resolve => setTimeout(resolve, 100));
-      hideLoader();
+      setTimeout(() => router.push('/todo'), 700);
     } catch (err) {
       notify(err.response?.data?.error || 'Failed to save heading', 'error');
-      hideLoader();
     }
+    hideLoader();
   };
 
   const handleDelete = async () => {
     showLoader();
     try {
-      await api.delete(`targetHeadings/${id}`);
-      notify('Heading deleted!', 'success');
-      setTimeout(() => router.push('/target'), 700);
+      await api.delete(`todoHeadings/${id}`);  // Changed API endpoint
+      notify('Todo heading deleted!', 'success');
+      setTimeout(() => router.push('/todo'), 700);  // Changed redirect path
     } catch (err) {
       notify(err.response?.data?.error || err.message || 'Failed to delete heading', 'error');
     }
@@ -76,7 +73,7 @@ function HeadingForm() {
   return (
     <Box sx={{ maxWidth: 400, mx: 'auto', mt: 6 }}>
       <Typography variant="h5" gutterBottom>
-        {id ? 'Edit Target Heading' : 'Add Target Heading'}
+        {id ? 'Edit Todo Heading' : 'Add Todo Heading'}  {/* Changed text */}
       </Typography>
       <form onSubmit={handleSubmit}>
         <TextField
@@ -138,7 +135,7 @@ function HeadingForm() {
             color="secondary"
             fullWidth
             disabled={open}
-            onClick={() => router.push('/target')}
+            onClick={() => router.push('/todo')}
           >
             Cancel
           </Button>

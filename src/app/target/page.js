@@ -13,10 +13,10 @@ import {
   IconButton,
   SpeedDial,
   SpeedDialAction,
-  TextField,
   Switch,
   FormControlLabel,
   ButtonGroup,
+  Divider,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DoneIcon from '@mui/icons-material/Done';
@@ -27,20 +27,122 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SaveIcon from '@mui/icons-material/Save';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useLoader } from '@/context/LoaderContext';
 import { useSnackbarUtils } from '@/context/SnackbarContext';
 import api from '@/utils/axios';
 import tinycolor from 'tinycolor2';
-import { ICON_MAP } from '@/utils/muiIcons'; // Add this import at the top
+import { ICON_MAP } from '@/utils/muiIcons';
 
-// Returns today's date in YYYY-MM-DD format
+// Utility: Returns today's date in YYYY-MM-DD format
 function getToday() {
   return new Date().toISOString().split('T')[0];
 }
 
-// Returns today's short weekday string (e.g., 'Mon')
+// Utility: Returns today's short weekday string (e.g., 'Mon')
 function getTodayShort() {
   return new Date().toLocaleDateString('en-US', { weekday: 'short' });
+}
+
+// Accordion for a single heading and its steps
+export function HeadingAccordion({
+  heading,
+  steps,
+  editMode,
+  handleEditHeading,
+  stepInputs,
+  stepLoading,
+  todayShort,
+  handleStepInput,
+  handleEditStep,
+  handleIncrement,
+  handleDecrement,
+  StepComponent = StepRow, // Add default StepRow as StepComponent
+}) {
+  // Use heading.color or fallback
+  const headingColor = heading.color || '#FF7043';
+  const headingTextColor = getContrastText(headingColor);
+  const detailsBg = getSubtleBg(headingColor);
+
+  return (
+    <Accordion
+      defaultExpanded
+      sx={{
+        mb: 2,
+        borderRadius: '12px !important',
+        overflow: 'hidden',
+        '&:before': {
+          display: 'none',
+        },
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon sx={{ color: headingTextColor }} />}
+        sx={{
+          bgcolor: headingColor,
+          color: headingTextColor,
+          fontWeight: 700,
+          '& .MuiTypography-root': {
+            fontWeight: 700,
+            color: headingTextColor,
+          },
+        }}
+      >
+        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+          <Typography sx={{ fontWeight: 700, color: headingTextColor }}>
+            {heading.name}
+          </Typography>
+        </Box>
+        {/* Edit heading button (only in edit mode and not for 'no-heading') */}
+        {editMode && heading.id !== 'no-heading' && (
+          <IconButton
+            size="small"
+            sx={{ ml: 1, color: headingTextColor }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditHeading(heading.id);
+            }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        )}
+      </AccordionSummary>
+      <AccordionDetails
+        sx={{
+          bgcolor: detailsBg,
+          borderBottomLeftRadius: '12px',
+          borderBottomRightRadius: '12px',
+        }}
+      >
+        {/* Show "No steps" if there are no steps */}
+        {steps.length === 0 ? (
+          <Typography variant="body2" color="text.secondary" align='center' marginY={2}>
+            No steps
+          </Typography>
+        ) : (
+          // Render each step in this heading
+          steps.map((step, idx) => (
+            <Box key={step.id}>
+              <StepComponent
+                step={step}
+                editMode={editMode}
+                stepInputs={stepInputs}
+                stepLoading={stepLoading}
+                todayShort={todayShort}
+                handleStepInput={handleStepInput}
+                handleEditStep={handleEditStep}
+                handleIncrement={handleIncrement}
+                handleDecrement={handleDecrement}
+                headingColor={heading.color}
+              />
+              {/* Divider between steps except after last */}
+              {idx < steps.length - 1 && <Divider sx={{ mx: 0, my: 1 }} />}
+            </Box>
+          ))
+        )}
+      </AccordionDetails>
+    </Accordion>
+  );
 }
 
 // Main Target component
@@ -49,7 +151,7 @@ function Target() {
   const [editMode, setEditMode] = useState(false);
   // State for all headings and their steps
   const [data, setData] = useState([]);
-  // State for all headings (not used directly here)
+  // State for all headings (for heading selection)
   const [headings, setHeadings] = useState([]);
   // State for current step input values (by step id)
   const [stepInputs, setStepInputs] = useState({});
@@ -111,11 +213,11 @@ function Target() {
       hideLoader();
     }
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [hideLoader, showLoader]);
 
   // Set initial stepInputs when data loads
   useEffect(() => {
+    showLoader();
     const allSteps = data.flatMap((group) => group.steps || []);
     const initial = {};
     allSteps.forEach((step) => {
@@ -131,16 +233,18 @@ function Target() {
       }
       // For bool steps, true if count exists
       else if (step.type === 'bool') {
-        initial[step.id] = step.targetStepData &&
+        initial[step.id] =
+          step.targetStepData &&
           step.targetStepData[0] &&
           step.targetStepData[0].count
-          ? 1
-          : 0;
+            ? 1
+            : 0;
       }
     });
     setInitialStepInputs(initial);
     setStepInputs(initial);
-  }, [data]);
+    hideLoader();
+  }, [data, hideLoader, showLoader]);
 
   // Handles updating the value for a step input
   const handleStepInput = (stepId, value) => {
@@ -311,7 +415,7 @@ function FloatingMainSpeedDial({
     <SpeedDial
       ariaLabel="Target actions"
       sx={{ position: 'fixed', bottom: 32, right: 32 }}
-      icon={<MenuIcon />}
+      icon={<SettingsIcon />}
       open={speedDialOpen}
       onClick={() => setSpeedDialOpen((prev) => !prev)}
       onClose={() => setSpeedDialOpen(false)}
@@ -361,95 +465,6 @@ function getSubtleBg(bgColor) {
   return tinycolor(bgColor).setAlpha(0.08).toRgbString();
 }
 
-// Accordion for a single heading and its steps
-function HeadingAccordion({
-  heading,
-  steps,
-  editMode,
-  handleEditHeading,
-  stepInputs,
-  stepLoading,
-  todayShort,
-  handleStepInput,
-  handleEditStep,
-  handleIncrement,
-  handleDecrement,
-}) {
-  // Use heading.color or fallback
-  const headingColor = heading.color || '#FF7043';
-  const headingTextColor = getContrastText(headingColor);
-  const detailsBg = getSubtleBg(headingColor);
-
-  return (
-    <Accordion key={heading.id} defaultExpanded>
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon sx={{ color: headingTextColor }} />}
-        sx={{
-          bgcolor: headingColor,
-          color: headingTextColor,
-          fontWeight: 700,
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12,
-          '& .MuiTypography-root': {
-            fontWeight: 700,
-            color: headingTextColor,
-          },
-        }}
-      >
-        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-          <Typography sx={{ fontWeight: 700, color: headingTextColor }}>
-            {heading.name}
-          </Typography>
-        </Box>
-        {/* Edit heading button (only in edit mode and not for 'no-heading') */}
-        {editMode && heading.id !== 'no-heading' && (
-          <IconButton
-            size="small"
-            sx={{ ml: 1, color: headingTextColor }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEditHeading(heading.id);
-            }}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        )}
-      </AccordionSummary>
-      <AccordionDetails
-        sx={{
-          bgcolor: detailsBg,
-          borderBottomLeftRadius: 12,
-          borderBottomRightRadius: 12,
-        }}
-      >
-        {/* Show "No steps" if there are no steps */}
-        {steps.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No steps
-          </Typography>
-        ) : (
-          // Render each step in this heading
-          steps.map((step) => (
-            <StepRow
-              key={step.id}
-              step={step}
-              editMode={editMode}
-              stepInputs={stepInputs}
-              stepLoading={stepLoading}
-              todayShort={todayShort}
-              handleStepInput={handleStepInput}
-              handleEditStep={handleEditStep}
-              handleIncrement={handleIncrement}
-              handleDecrement={handleDecrement}
-              headingColor={heading.color}
-            />
-          ))
-        )}
-      </AccordionDetails>
-    </Accordion>
-  );
-}
-
 // Renders a single step row (title, description, and controls)
 function StepRow({
   step,
@@ -461,9 +476,12 @@ function StepRow({
   handleEditStep,
   handleIncrement,
   handleDecrement,
-  headingColor, // <-- Pass this from HeadingAccordion
+  headingColor,
 }) {
+  // Current value for this step
   const count = stepInputs[step.id] ?? 0;
+
+  // Whether this step is a "kudos" (extra day)
   const isKudos =
     step.type === 'count' &&
     step.days &&
@@ -475,16 +493,15 @@ function StepRow({
     !step.days.includes(todayShort) &&
     count > 0;
 
+  // Icon for this step
   const IconComp = ICON_MAP[step.icon] || ICON_MAP['Star'];
   const hasDescription = !!step.description;
 
   return (
     <Box
-      key={step.id}
       sx={{
         display: 'flex',
-        alignItems: hasDescription ? 'flex-start' : 'center',
-        mb: 1,
+        alignItems: 'center',
         px: 2,
         py: 1,
         transition: 'background 0.2s',
@@ -496,11 +513,28 @@ function StepRow({
       }}
     >
       {/* Icon with heading color */}
-      <Box sx={{ mr: 2, mt: hasDescription ? '2px' : 0, display: 'flex', alignItems: 'center' }}>
-        <IconComp fontSize="large" sx={{ color: headingColor || 'primary.main' }} />
+      <Box
+        sx={{
+          mr: 2,
+          mt: hasDescription ? '2px' : 0,
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <IconComp
+          fontSize="large"
+          sx={{ color: headingColor || 'primary.main' }}
+        />
       </Box>
       {/* Step title and description */}
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: hasDescription ? 'flex-start' : 'center' }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: hasDescription ? 'flex-start' : 'center',
+        }}
+      >
         <Typography fontWeight={500}>{step.title}</Typography>
         {hasDescription && (
           <Typography variant="body2" color="text.secondary">
