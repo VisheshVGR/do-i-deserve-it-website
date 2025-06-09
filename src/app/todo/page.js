@@ -87,13 +87,7 @@ function Todo() {
   const handleToggleTodo = async (todoId, currentStatus) => {
     showLoader();
     try {
-      const payload = {
-        isDone: !currentStatus,
-        title: todos.find(t => t.id === todoId)?.title || '', // Keep existing title
-        todoHeadingId: todos.find(t => t.id === todoId)?.todoHeadingId // Keep existing heading
-      };
-
-      await api.put(`todos/${todoId}`, payload);
+      await api.patch(`todos/${todoId}/toggleIsDone`);
       fetchData();
     } catch (err) {
       notify('Failed to update todo', 'error');

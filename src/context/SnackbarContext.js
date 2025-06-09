@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useRef } from 'react';
 import { SnackbarProvider, useSnackbar } from 'notistack';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 
 const SnackbarContext = createContext();
 
@@ -11,7 +13,23 @@ export const SnackbarProviderWithUtils = ({ children }) => {
   // Utility to show notification
   const notify = (message, variant = 'success') => {
     if (notistackRef.current) {
-      notistackRef.current.enqueueSnackbar(message, { variant, preventDuplicate: true });
+      notistackRef.current.enqueueSnackbar(message, {
+        variant,
+        preventDuplicate: true,
+        action: (key) => (
+          <IconButton
+            aria-label="close"
+            color="inherit"
+            size="small"
+            onClick={() => {
+              notistackRef.current.closeSnackbar(key);
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        ),
+        persist: false,
+      });
     }
   };
 

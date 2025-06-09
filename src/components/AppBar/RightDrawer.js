@@ -9,7 +9,6 @@ import {
   ListItemText,
   Box,
   Divider,
-  Button,
   Avatar,
   Typography,
 } from '@mui/material';
@@ -28,14 +27,19 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { pink, blue, green, orange, purple, yellow, deepOrange, teal } from '@mui/material/colors';
 
-const routes = [
+export const routes = [
   { path: '/', label: 'Home', icon: <HomeIcon sx={{ color: blue[600] }} /> },
   { path: '/do-i-deserve-it', label: 'Do I Deserve It', icon: <StarIcon sx={{ color: yellow[700] }} /> },
   { path: '/target', label: 'Target', icon: <TargetIcon sx={{ color: orange[600] }} /> },
   { path: '/target/friends', label: 'Friends', icon: <GroupIcon sx={{ color: teal[500] }} />, nested: true },
   { path: '/target/report', label: 'Report', icon: <ReportIcon sx={{ color: purple[400] }} />, nested: true },
+  { path: '/target/step-form', label: 'Step', icon: <TargetIcon sx={{ color: orange[600] }} />, nested: true , hidden: true},
+  { path: '/target/heading-form', label: 'Upsert Heading', icon: <TargetIcon sx={{ color: orange[600] }} />, nested: true , hidden: true },
   { path: '/todo', label: 'Todo', icon: <CheckCircleIcon sx={{ color: green[600] }} /> },
+  { path: '/todo/todo-form', label: 'Upsert Todo', icon: <CheckCircleIcon sx={{ color: green[600] }} />, nested: true , hidden: true },
+  { path: '/todo/heading-form', label: 'Upsert Heading', icon: <CheckCircleIcon sx={{ color: green[600] }} />, nested: true , hidden: true },
   { path: '/reminder', label: 'Reminder', icon: <ReminderIcon sx={{ color: pink[400] }} /> },
+  { path: '/reminder/reminder-form', label: 'Upsert Reminder', icon: <ReminderIcon sx={{ color: pink[400] }} />, nested: true , hidden: true },
 ];
 
 export default function RightDrawer({ open, onClose, onProfileClick }) {
@@ -53,7 +57,7 @@ export default function RightDrawer({ open, onClose, onProfileClick }) {
       <Box sx={{ width: 250, height: '100%', display: 'flex', flexDirection: 'column' }}>
         <Box>
           <List>
-            {routes.map((route) => (
+            {routes.filter(route => !route.hidden).map((route) => (
               <ListItem
                 key={route.path}
                 onClick={() => handleNavigation(route.path)}

@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCookies } from 'react-cookie';
-import axios from 'axios';
+import api from '@/utils/axios'; // Import axios utils
 
 const AuthContext = createContext();
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await axios.get(`${BASE_URL}users/me`, {
+        const response = await api.get('users/me', { // Use axios utils
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log ("UserData:", response.data);

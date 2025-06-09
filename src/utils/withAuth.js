@@ -33,7 +33,9 @@ const withAuth = (WrappedComponent) => {
     return <WrappedComponent {...props} />;
   };
 
-  AuthenticatedComponent.displayName = `withAuth(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`;
+  AuthenticatedComponent.displayName = `withAuth(${
+    WrappedComponent.displayName || WrappedComponent.name || 'Component'
+  })`;
 
   return AuthenticatedComponent;
 };

@@ -150,10 +150,10 @@ function StepForm() {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', my: 6 }}>
-      <Typography variant="h5" gutterBottom>
+    <Box sx={{ maxWidth: 600, mx: 'auto', my: 6, mx: 2  }}>
+      {/* <Typography variant="h5" gutterBottom>
         {id ? 'Edit Target Step' : 'Add Target Step'}
-      </Typography>
+      </Typography> */}
       <form onSubmit={handleSubmit}>
         {/* Heading selection */}
         <FormControl fullWidth margin="normal">

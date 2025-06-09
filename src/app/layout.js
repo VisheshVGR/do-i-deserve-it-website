@@ -17,9 +17,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <CookiesWrapper>
-          <AuthProvider>
-            <ThemeWrapper>
-              <LoaderProvider>
+          <LoaderProvider>
+            <AuthProvider>
+              <ThemeWrapper>
                 <SnackbarProviderWithUtils>
                   <AxiosInjector />
                   <UniversalLoader />
@@ -27,9 +27,9 @@ export default function RootLayout({ children }) {
                   {/* Page Content */}
                   {children}
                 </SnackbarProviderWithUtils>
-              </LoaderProvider>
-            </ThemeWrapper>
-          </AuthProvider>
+              </ThemeWrapper>
+            </AuthProvider>
+          </LoaderProvider>
         </CookiesWrapper>
       </body>
     </html>

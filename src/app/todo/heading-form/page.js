@@ -71,10 +71,10 @@ function HeadingForm() {
   };
 
   return (
-    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 6 }}>
-      <Typography variant="h5" gutterBottom>
-        {id ? 'Edit Todo Heading' : 'Add Todo Heading'}  {/* Changed text */}
-      </Typography>
+    <Box sx={{ maxWidth: 400, mx: 'auto', mt: 6, mx: 2  }}>
+      {/* <Typography variant="h5" gutterBottom>
+        {id ? 'Edit Todo Heading' : 'Add Todo Heading'}
+      </Typography> */}
       <form onSubmit={handleSubmit}>
         <TextField
           label="Heading Name"

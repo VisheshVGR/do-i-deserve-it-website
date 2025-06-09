@@ -1,24 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, IconButton, Typography } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Box } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import RightDrawer from './RightDrawer';
 import ProfileDrawer from './ProfileDrawer';
 import { usePathname } from 'next/navigation';
+import { routes } from '@/components/AppBar/RightDrawer'; // Import routes
+import { ICON_MAP } from '@/utils/muiIcons'; // Import ICON_MAP
 
 const getPageTitle = (pathname) => {
-  const titles = {
-    '/': 'Home',
-    '/dashboard': 'Dashboard',
-    '/settings': 'Settings',
-    '/profile': 'Profile',
-    '/target': 'Target',
-    '/target/friends': 'Friends',
-    '/target/report': 'Report',
-    '/reminder': 'Reminder',
-  };
-  return titles[pathname] || 'Do I Deserve It';
+  const route = routes.find((route) => route.path === pathname);
+  return route ? { label: route.label, icon: route.icon } : { label: 'Do I Deserve It', icon: null };
 };
 
 export default function CustomAppBar() {
@@ -31,20 +24,28 @@ export default function CustomAppBar() {
     setMounted(true);
   }, []);
 
-  const title = mounted ? getPageTitle(pathname) : '';
+  const { label, icon } = mounted ? getPageTitle(pathname) : { label: '', icon: null };
 
   return (
     <>
-      <AppBar position="static">
+      <AppBar position="static" elevation={0} sx={{ backgroundColor: 'transparent', boxShadow: 0 }}>
         <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            {title}
-          </Typography>
+          <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+            {icon && (
+              <Box sx={{ mr: 1, display: 'flex', alignItems: 'center'  }}>
+                {React.cloneElement(icon, { style: { color: icon.props.sx?.color } })} {/* Clone and apply color */}
+              </Box>
+            )}
+            <Typography variant="h6" color="inherit">
+              {label}
+            </Typography>
+          </Box>
           <IconButton
             edge="end"
             color="inherit"
             aria-label="menu"
             onClick={() => setRightDrawerOpen(true)}
+            sx={{backgroundColor: 'rgba(0,0,0,0.03)'}}
           >
             <MenuIcon />
           </IconButton>

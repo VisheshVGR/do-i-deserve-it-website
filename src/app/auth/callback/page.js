@@ -58,6 +58,5 @@ export default function Callback() {
     handleCallback();
   }, [setCookie, router]);
 
-  if (loading) return <UniversalLoader />;
-  return <p>Logging in...</p>;
+  return loading ? <UniversalLoader /> : <p>Logging in...</p>;
 }

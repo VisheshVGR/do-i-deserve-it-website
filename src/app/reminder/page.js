@@ -130,7 +130,7 @@ function Reminder() {
                       {reminder.description && (
                         <Typography variant="body2">{reminder.description}</Typography>
                       )}
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                         <Chip
                           icon={<AccessTimeIcon />}
                           label={getNextAlarmTime(reminder)}
@@ -141,7 +141,8 @@ function Reminder() {
                           <Chip
                             icon={<RepeatIcon />}
                             label={reminder.repeat === 'custom' ? 
-                              `Custom: ${reminder.days.join(', ')}` : 
+                              `Custom` : 
+                              // `Custom: ${reminder.days.join(', ')}` : 
                               'Daily'}
                             size="small"
                             color="info"

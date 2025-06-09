@@ -113,10 +113,10 @@ function ReminderForm() {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', my: 6 }}>
-      <Typography variant="h5" gutterBottom>
+    <Box sx={{ maxWidth: 600, mx: 'auto', my: 6, mx: 2 }}>
+      {/* <Typography variant="h5" gutterBottom>
         {id ? 'Edit Reminder' : 'Add Reminder'}
-      </Typography>
+      </Typography> */}
       <form onSubmit={handleSubmit}>
         <TextField
           label="Title"

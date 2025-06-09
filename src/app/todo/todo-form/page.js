@@ -71,7 +71,6 @@ function TodoForm() {
       const payload = {
         title: title.trim(),
         todoHeadingId: todoHeadingId || undefined,
-        isDone,
       };
 
       if (id) {
@@ -105,10 +104,10 @@ function TodoForm() {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', my: 6 }}>
-      <Typography variant="h5" gutterBottom>
+    <Box sx={{ maxWidth: 600, mx: 'auto', my: 6, mx: 2 }}>
+      {/* <Typography variant="h5" gutterBottom>
         {id ? 'Edit Todo' : 'Add Todo'}
-      </Typography>
+      </Typography> */}
 
       <form onSubmit={handleSubmit}>
         {/* Heading selection */}
@@ -195,11 +194,7 @@ function TodoForm() {
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleDelete}
-              color="error"
-              variant="contained"
-            >
+            <Button onClick={handleDelete} color="error" variant="contained">
               Delete
             </Button>
           </DialogActions>
