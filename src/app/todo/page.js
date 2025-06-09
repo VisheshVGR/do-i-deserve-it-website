@@ -125,8 +125,22 @@ function Todo() {
 
   const toggleHeadingExpanded = async (headingId, isExpanded) => {
     try {
-      await api.patch(`todoHeadings/${headingId}/toggle`, { isExpanded });
+      const response = await api.patch(`todoHeadings/${headingId}/toggle`, { isExpanded });
       // No need to update local state, fetchData() will refresh from server
+      if (response.data && response.data.isExpanded !== undefined) {
+        // Update the heading's isExpanded state in the local data
+        setHeadings(prevHeadings => {
+          return prevHeadings.map(heading => {
+            if (heading.id === headingId) {
+              return {
+                ...heading,
+                isExpanded: response.data.isExpanded
+              };
+            }
+            return heading;
+          });
+        });
+      }
     } catch (error) {
       console.error("Failed to toggle heading expanded state:", error);
       // Optionally, show a snackbar error message

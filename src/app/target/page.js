@@ -28,6 +28,8 @@ import SaveIcon from '@mui/icons-material/Save';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import SettingsIcon from '@mui/icons-material/Settings';
+import WarningIcon from '@mui/icons-material/Warning';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useLoader } from '@/context/LoaderContext';
 import { useSnackbarUtils } from '@/context/SnackbarContext';
 import api from '@/utils/axios';
@@ -87,8 +89,25 @@ export function HeadingAccordion({
 
   const toggleHeadingExpanded = async (headingId, isExpanded) => {
     try {
-      await api.patch(`targetHeadings/${headingId}/toggle`, { isExpanded });
+      const response = await api.patch(`targetHeadings/${headingId}/toggle`, { isExpanded });
       // No need to update local state, fetchData() will refresh from server
+      if (response.data && response.data.isExpanded !== undefined) {
+        // Update the heading's isExpanded state in the local data
+        setData(prevData => {
+          return prevData.map(group => {
+            if (group.heading.id === headingId) {
+              return {
+                ...group,
+                heading: {
+                  ...group.heading,
+                  isExpanded: response.data.isExpanded
+                }
+              };
+            }
+            return group;
+          });
+        });
+      }
     } catch (error) {
       console.error("Failed to toggle heading expanded state:", error);
       // Optionally, show a snackbar error message
@@ -588,6 +607,7 @@ function StepRow({
         },
         cursor: 'default', // No pointer/click effect
         borderRadius: 2,
+        justifyContent: 'space-between', // Push content to start and end
       }}
     >
       {/* Icon with heading color */}
@@ -611,9 +631,13 @@ function StepRow({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: hasDescription ? 'flex-start' : 'center',
+          minWidth: 0, // Allow text to truncate
+          overflow: 'visible', // Show all text
         }}
       >
-        <Typography fontWeight={500}>{step.title}</Typography>
+        <Typography fontWeight={500}>
+          {step.title}
+        </Typography>
         {hasDescription && (
           <Typography variant="body2" color="text.secondary">
             {step.description}
@@ -671,7 +695,12 @@ function StepEditOrStatus({
   // If step is suspended or completed, show status badge
   if (step.status === 'suspended' || step.status === 'completed') {
     return (
-      <Box sx={{ ml: 2 }}>
+      <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
+        {step.status === 'completed' ? (
+          <CheckCircleIcon sx={{ color: 'success.main', mr: 0.5 }} />
+        ) : (
+          <WarningIcon sx={{ color: 'warning.dark', mr: 0.5 }} />
+        )}
         <Box
           component="span"
           sx={{
@@ -776,7 +805,11 @@ function StepEditOrStatus({
           justifyContent: 'center',
           fontWeight: 700,
           fontSize: 18,
-          color: 'text.primary',
+          color: isKudos
+            ? 'warning.light'
+            : count === 0
+            ? 'error.light'
+            : 'success.light',
           bgcolor: 'transparent',
           userSelect: 'none',
           ml: 2,

@@ -43,6 +43,7 @@ import { useSnackbarUtils } from '@/context/SnackbarContext';
 import api from '@/utils/axios';
 import tinycolor from 'tinycolor2';
 import { HeadingAccordion } from '../page';
+import Link from 'next/link';
 
 /**
  * Component to display a friend's steps grouped by headings
@@ -264,16 +265,18 @@ function FriendsPage() {
                 <DeleteIcon />
               </IconButton>
             ) : (
-              <IconButton
-                size="small"
-                color="info"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.location.href = `/target/friends/report?id=${friend.friendUserId}`;
-                }}
-              >
-                <AssessmentIcon />
-              </IconButton>
+              expanded[friend.friendUserId] ? null : (
+                <IconButton
+                  size="small"
+                  color="info"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.location.href = `/target/friends/report?id=${friend.friendUserId}`;
+                  }}
+                >
+                  <AssessmentIcon />
+                </IconButton>
+              )
             )}
           </AccordionSummary>
           <AccordionDetails
@@ -287,6 +290,15 @@ function FriendsPage() {
               friendUserId={friend.friendUserId}
               headingColor={headingColor}
             />
+            <Box mt={2}>
+              <Link
+                href={`/target/friends/report?id=${friend.friendUserId}`}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <AssessmentIcon />
+                Report
+              </Link>
+            </Box>
           </AccordionDetails>
         </Accordion>
       );
