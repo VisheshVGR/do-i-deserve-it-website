@@ -101,7 +101,7 @@ function Reminder() {
   };
 
   return (
-    <Box sx={pageContainerStyles}>
+    <Box sx={{...pageContainerStyles, mb: 8}}>
       {reminders.length === 0 ? (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
           <Typography variant="h6" color="text.secondary">

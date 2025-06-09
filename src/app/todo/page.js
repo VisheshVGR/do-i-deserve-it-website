@@ -34,11 +34,6 @@ function Todo() {
   const [todos, setTodos] = useState([]);
   const [headings, setHeadings] = useState([]);
   const [editMode, setEditMode] = useState(false);
-  const [expanded, setExpanded] = useState(() => {
-    if (typeof window === 'undefined') return {};
-    const saved = localStorage.getItem('todoAccordionStates');
-    return saved ? JSON.parse(saved) : {};
-  });
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
 
   // Hooks
@@ -108,20 +103,16 @@ function Todo() {
     hideLoader();
   };
 
-  // Add this useEffect to save expanded state to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('todoAccordionStates', JSON.stringify(expanded));
-    }
-  }, [expanded]);
-
   // Update handleHeadingClick to properly update expanded state
-  const handleHeadingClick = (headingId) => (event, isExpanded) => {
-    const newExpanded = {
-      ...expanded,
-      [headingId]: isExpanded
-    };
-    setExpanded(newExpanded);
+  const handleHeadingClick = (heading) => async (event, isExpanded) => {
+    try {
+      await api.patch(`todoHeadings/${heading.id}/toggle`);
+      // No need to update local state, fetchData() will refresh from server
+    } catch (error) {
+      console.error("Failed to toggle heading expanded state:", error);
+      // Optionally, show a snackbar error message
+      notify('Failed to update heading state', 'error');
+    }
   };
 
   // Utility functions from target page
@@ -134,15 +125,15 @@ function Todo() {
   }
 
   // TodoHeadingAccordion component (similar to HeadingAccordion)
-  function TodoHeadingAccordion({ heading, todos, editMode, handleEdit, expanded }) {
+  function TodoHeadingAccordion({ heading, todos, editMode, handleEdit }) {
     const headingColor = heading.color || '#FF7043';
     const headingTextColor = getContrastText(headingColor);
     const detailsBg = getSubtleBg(headingColor);
 
     return (
       <Accordion
-        expanded={expanded}
-        onChange={(e, isExpanded) => handleHeadingClick(heading.id)(e, isExpanded)}
+        expanded={heading.isExpanded}
+        onChange={handleHeadingClick(heading)}
         sx={{
           mb: 2,
           borderRadius: '12px !important', // Force rounded corners always
@@ -244,7 +235,7 @@ function Todo() {
   }
 
   return (
-    <Box sx={{ p: 2, minHeight: '70vh', position: 'relative' }}>
+    <Box sx={{ p: 2, minHeight: '70vh', position: 'relative', mb : 8 }}>
       {headings.length === 0 && todos.length === 0 ? (
         <Typography color="text.secondary" align="center" sx={{ mt: 8 }}>
           No todos yet. Add some to get started!
@@ -259,7 +250,6 @@ function Todo() {
               todos={groupedTodos[heading.id] || []}
               editMode={editMode}
               handleEdit={(id) => router.push(`/todo/heading-form?id=${id}`)}
-              expanded={expanded[heading.id] ?? false} // Add this prop
             />
           ))}
 
@@ -270,7 +260,6 @@ function Todo() {
               todos={groupedTodos.others}
               editMode={editMode}
               handleEdit={() => {}}
-              expanded={expanded['others'] ?? false} // Add this prop
             />
           )}
         </>

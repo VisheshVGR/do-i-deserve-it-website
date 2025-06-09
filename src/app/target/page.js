@@ -2,7 +2,7 @@
 
 // Import required dependencies and components
 import withAuth from '@/utils/withAuth';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -44,6 +44,26 @@ function getTodayShort() {
   return new Date().toLocaleDateString('en-US', { weekday: 'short' });
 }
 
+// Debounce Function
+function useDebounce(func, delay) {
+  const timeoutRef = useRef(null);
+
+  const debouncedFunction = useCallback(
+    (...args) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        func(...args);
+      }, delay);
+    },
+    [func, delay]
+  );
+
+  return debouncedFunction;
+}
+
 // Accordion for a single heading and its steps
 export function HeadingAccordion({
   heading,
@@ -64,9 +84,20 @@ export function HeadingAccordion({
   const headingTextColor = getContrastText(headingColor);
   const detailsBg = getSubtleBg(headingColor);
 
+  const handleAccordionChange = async (event, isExpanded) => {
+    try {
+      await api.patch(`targetHeadings/${heading.id}/toggle`);
+      // No need to update local state, fetchData() will refresh from server
+    } catch (error) {
+      console.error("Failed to toggle heading expanded state:", error);
+      // Optionally, show a snackbar error message
+    }
+  };
+
   return (
     <Accordion
-      defaultExpanded
+      expanded={heading.isExpanded}
+      onChange={handleAccordionChange}
       sx={{
         mb: 2,
         borderRadius: '12px !important',
@@ -205,7 +236,19 @@ function Target() {
           grouped[headingId].steps.push(step);
         });
 
-        setData(Object.values(grouped));
+        // Convert grouped object to array
+        const dataArray = Object.values(grouped);
+
+        // Sort the steps within each heading
+        dataArray.forEach((group) => {
+          group.steps.sort((a, b) => {
+            // Assuming steps have a property like 'order' or 'createdAt'
+            // Replace 'order' with the actual property you want to sort by
+            return a.order - b.order;
+          });
+        });
+
+        setData(dataArray);
       } catch {
         setData([]);
         setHeadings([]);
@@ -246,25 +289,47 @@ function Target() {
     hideLoader();
   }, [data, hideLoader, showLoader]);
 
+  // Generic function to save step data
+  const saveStepData = async (stepId, value) => {
+    try {
+      await api.post(`targetSteps/${stepId}/data`, {
+        date: getToday(),
+        count: value,
+      });
+      notify('Step updated!', 'success');
+    } catch (error) {
+      console.error("Error saving step data:", error);
+      notify('Failed to update step', 'error');
+    }
+  };
+
+  // Debounced save function
+  const debouncedSaveStepData = useDebounce(saveStepData, 500);
+
   // Handles updating the value for a step input
   const handleStepInput = (stepId, value) => {
     if (typeof value === 'number' && value < 0) value = 0;
     setStepInputs((inputs) => ({ ...inputs, [stepId]: value }));
+    debouncedSaveStepData(stepId, value); // Call debounced save
   };
 
   // Handles incrementing the value for a count step
   const handleIncrement = (step, todayShort) => {
     setStepInputs((inputs) => {
-      const current = Number(inputs[step.id] || 0);
-      return { ...inputs, [step.id]: current + 1 };
+      const newValue = Number(inputs[step.id] || 0) + 1;
+      setStepInputs((inputs) => ({ ...inputs, [step.id]: newValue }));
+      debouncedSaveStepData(step.id, newValue);
+      return { ...inputs, [step.id]: newValue };
     });
   };
 
   // Handles decrementing the value for a count step
   const handleDecrement = (step, todayShort) => {
     setStepInputs((inputs) => {
-      const current = Number(inputs[step.id] || 0);
-      return { ...inputs, [step.id]: Math.max(0, current - 1) };
+      const newValue = Math.max(0, Number(inputs[step.id] || 0) - 1);
+      setStepInputs((inputs) => ({ ...inputs, [step.id]: newValue }));
+      debouncedSaveStepData(step.id, newValue);
+      return { ...inputs, [step.id]: newValue };
     });
   };
 
@@ -332,7 +397,7 @@ function Target() {
 
   // --- Main Render ---
   return (
-    <Box sx={{ p: 2, position: 'relative', minHeight: '70vh' }}>
+    <Box sx={{ p: 2, position: 'relative', minHeight: '70vh', mb : 8 }}>
       {/* Show "No data" if there are no headings/steps */}
       {data.length === 0 ? (
         <Box
@@ -366,10 +431,10 @@ function Target() {
       )}
 
       {/* Floating Save SpeedDial (shows only if there are unsaved changes) */}
-      <FloatingSaveSpeedDial
+      {/* <FloatingSaveSpeedDial
         hasUnsavedChanges={hasUnsavedChanges}
         handleSaveAll={handleSaveAll}
-      />
+      /> */}
 
       {/* Floating Main SpeedDial for actions */}
       <FloatingMainSpeedDial
@@ -622,14 +687,17 @@ function StepEditOrStatus({
         control={
           <Switch
             checked={!!count}
-            onChange={(e) => handleStepInput(step.id, e.target.checked ? 1 : 0)}
+            onChange={(e) => {
+              const newValue = e.target.checked ? 1 : 0;
+              handleStepInput(step.id, newValue);
+            }}
             color="success"
             sx={{
               '& .MuiSwitch-thumb': {
                 bgcolor:
                   count === 0
                     ? 'error.main'
-                    : isBoolKudos
+                    : isKudos
                     ? 'warning.main'
                     : 'success.main',
               },
@@ -637,7 +705,7 @@ function StepEditOrStatus({
                 bgcolor:
                   count === 0
                     ? 'error.light'
-                    : isBoolKudos
+                    : isKudos
                     ? 'warning.light'
                     : 'success.light',
                 opacity: 1,
@@ -646,15 +714,15 @@ function StepEditOrStatus({
           />
         }
         // Label: Absent if 0, Kudos if bool kudos, Present otherwise
-        label={count === 0 ? 'Absent' : isBoolKudos ? 'Kudos' : 'Present'}
-        labelPlacement="start"
+        // label={count === 0 ? 'Absent' : isKudos ? 'Kudos' : 'Present'}
+        // labelPlacement="start"
         sx={{
           '.MuiFormControlLabel-label': {
             fontWeight: 700,
             color:
               count === 0
                 ? 'error.dark'
-                : isBoolKudos
+                : isKudos
                 ? 'warning.dark'
                 : 'success.dark',
             minWidth: 60,

@@ -293,7 +293,7 @@ function FriendsPage() {
   };
 
   return (
-    <Box sx={{ p: 2, minHeight: '70vh', position: 'relative' }}>
+    <Box sx={{ p: 2, minHeight: '70vh', position: 'relative', mb : 8 }}>
       {renderFriendAccordions()}
 
       {/* Floating SpeedDial */}
