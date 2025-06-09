@@ -24,7 +24,7 @@ export default function ProfileDrawer({ open, onClose }) {
       anchor="bottom"
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { padding: 2 } }}
+      PaperProps={{ sx: { padding: 2, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } }}
     >
       <Box textAlign="center">
         {/* User Avatar */}

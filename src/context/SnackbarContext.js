@@ -15,7 +15,8 @@ export const SnackbarProviderWithUtils = ({ children }) => {
     if (notistackRef.current) {
       notistackRef.current.enqueueSnackbar(message, {
         variant,
-        preventDuplicate: true,
+        // preventDuplicate: true,
+        preventDuplicate: false,
         action: (key) => (
           <IconButton
             aria-label="close"

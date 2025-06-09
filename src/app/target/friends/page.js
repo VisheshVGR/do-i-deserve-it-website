@@ -131,6 +131,7 @@ function FriendSteps({ friendUserId, headingColor }) {
           handleEditStep={noop}
           handleIncrement={noop}
           handleDecrement={noop}
+          readOnly={true} // Pass readOnly prop
         />
       ))}
     </>

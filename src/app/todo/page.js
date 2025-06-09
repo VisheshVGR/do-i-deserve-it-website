@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box,
@@ -40,6 +40,26 @@ function Todo() {
   const router = useRouter();
   const { showLoader, hideLoader } = useLoader();
   const { notify } = useSnackbarUtils();
+
+  // Debounce Function
+  function useDebounce(func, delay) {
+    const timeoutRef = useRef(null);
+
+    const debouncedFunction = useCallback(
+      (...args) => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+
+        timeoutRef.current = setTimeout(() => {
+          func(...args);
+        }, delay);
+      },
+      [func, delay]
+    );
+
+    return debouncedFunction;
+  }
 
   // Fetch todos and headings
   const fetchData = async () => {
@@ -103,16 +123,23 @@ function Todo() {
     hideLoader();
   };
 
-  // Update handleHeadingClick to properly update expanded state
-  const handleHeadingClick = (heading) => async (event, isExpanded) => {
+  const toggleHeadingExpanded = async (headingId, isExpanded) => {
     try {
-      await api.patch(`todoHeadings/${heading.id}/toggle`);
+      await api.patch(`todoHeadings/${headingId}/toggle`, { isExpanded });
       // No need to update local state, fetchData() will refresh from server
     } catch (error) {
       console.error("Failed to toggle heading expanded state:", error);
       // Optionally, show a snackbar error message
       notify('Failed to update heading state', 'error');
     }
+  };
+
+  const debouncedToggleHeadingExpanded = useDebounce(toggleHeadingExpanded, 500);
+
+  // Update handleHeadingClick to properly update expanded state
+  const handleHeadingClick = (heading) => (event, isExpanded) => {
+    if (heading.id === 'others') return; // Prevent API call for "Others" heading
+    debouncedToggleHeadingExpanded(heading.id, isExpanded);
   };
 
   // Utility functions from target page

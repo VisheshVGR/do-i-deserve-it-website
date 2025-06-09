@@ -6,7 +6,13 @@ export default function HomePage() {
     <div>
       <main>
         <h1>Welcome to Do I Deserve It</h1>
-        <p>Toggle between dark and light mode using the button above.</p>
+        <h2>Upcoming Features:</h2>
+        <ul>
+          <li>Lots of UI updates pending.</li>
+          <li>Home page with elaborated data and links to GOTO pages will come.</li>
+          <li>Feedback / Bug section will come.</li>
+          <li>Report section is on the way.</li>
+        </ul>
       </main>
     </div>
   );

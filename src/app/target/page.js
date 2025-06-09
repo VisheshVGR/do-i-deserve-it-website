@@ -77,6 +77,7 @@ export function HeadingAccordion({
   handleEditStep,
   handleIncrement,
   handleDecrement,
+  readOnly = false, // Add readOnly prop
   StepComponent = StepRow, // Add default StepRow as StepComponent
 }) {
   // Use heading.color or fallback
@@ -84,14 +85,22 @@ export function HeadingAccordion({
   const headingTextColor = getContrastText(headingColor);
   const detailsBg = getSubtleBg(headingColor);
 
-  const handleAccordionChange = async (event, isExpanded) => {
+  const toggleHeadingExpanded = async (headingId, isExpanded) => {
     try {
-      await api.patch(`targetHeadings/${heading.id}/toggle`);
+      await api.patch(`targetHeadings/${headingId}/toggle`, { isExpanded });
       // No need to update local state, fetchData() will refresh from server
     } catch (error) {
       console.error("Failed to toggle heading expanded state:", error);
       // Optionally, show a snackbar error message
     }
+  };
+
+  const debouncedToggleHeadingExpanded = useDebounce(toggleHeadingExpanded, 500);
+
+  const handleAccordionChange = (event, isExpanded) => {
+    if (readOnly) return; // Prevent toggle if readOnly
+    if (heading.id === 'no-heading') return; // Don't trigger API call for "Others" heading
+    debouncedToggleHeadingExpanded(heading.id, isExpanded);
   };
 
   return (
@@ -145,32 +154,35 @@ export function HeadingAccordion({
           borderBottomRightRadius: '12px',
         }}
       >
-        {/* Show "No steps" if there are no steps */}
-        {steps.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" align='center' marginY={2}>
-            No steps
-          </Typography>
-        ) : (
-          // Render each step in this heading
-          steps.map((step, idx) => (
-            <Box key={step.id}>
-              <StepComponent
-                step={step}
-                editMode={editMode}
-                stepInputs={stepInputs}
-                stepLoading={stepLoading}
-                todayShort={todayShort}
-                handleStepInput={handleStepInput}
-                handleEditStep={handleEditStep}
-                handleIncrement={handleIncrement}
-                handleDecrement={handleDecrement}
-                headingColor={heading.color}
-              />
-              {/* Divider between steps except after last */}
-              {idx < steps.length - 1 && <Divider sx={{ mx: 0, my: 1 }} />}
-            </Box>
-          ))
-        )}
+        <Box sx={{ overflowX: 'auto', whiteSpace: 'nowrap', py: 1 }}>
+          {/* Show "No steps" if there are no steps */}
+          {steps.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" align='center' marginY={2}>
+              No steps
+            </Typography>
+          ) : (
+            // Render each step in this heading
+            steps.map((step, idx) => (
+              <Box key={step.id} sx={{ display: 'inline-block', mr: 2 }}>
+                <StepComponent
+                  step={step}
+                  editMode={editMode}
+                  stepInputs={stepInputs}
+                  stepLoading={stepLoading}
+                  todayShort={todayShort}
+                  handleStepInput={handleStepInput}
+                  handleEditStep={handleEditStep}
+                  handleIncrement={handleIncrement}
+                  handleDecrement={handleDecrement}
+                  headingColor={heading.color}
+                  readOnly={readOnly} // Pass readOnly to StepComponent
+                />
+                {/* Divider between steps except after last */}
+                {idx < steps.length - 1 && <Divider sx={{ mx: 0, my: 1 }} />}
+              </Box>
+            ))
+          )}
+        </Box>
       </AccordionDetails>
     </Accordion>
   );
@@ -542,6 +554,7 @@ function StepRow({
   handleIncrement,
   handleDecrement,
   headingColor,
+  readOnly = false, // Add readOnly prop
 }) {
   // Current value for this step
   const count = stepInputs[step.id] ?? 0;
@@ -620,6 +633,7 @@ function StepRow({
         handleEditStep={handleEditStep}
         handleIncrement={handleIncrement}
         handleDecrement={handleDecrement}
+        readOnly={readOnly} // Pass readOnly to StepEditOrStatus
       />
     </Box>
   );
@@ -638,6 +652,7 @@ function StepEditOrStatus({
   handleEditStep,
   handleIncrement,
   handleDecrement,
+  readOnly = false, // Add readOnly prop
 }) {
   // If in edit mode, show edit button
   if (editMode) {
@@ -682,7 +697,23 @@ function StepEditOrStatus({
 
   // If step is boolean, show toggle with colored label
   if (step.type === 'bool') {
-    return (
+    return readOnly ? (
+      <Typography
+        sx={{
+          fontWeight: 700,
+          color:
+            count === 0
+              ? 'error.dark'
+              : isKudos
+              ? 'warning.dark'
+              : 'success.dark',
+          minWidth: 60,
+          mr: 1,
+        }}
+      >
+        {count === 0 ? 'Absent' : isKudos ? 'Kudos' : 'Present'}
+      </Typography>
+    ) : (
       <FormControlLabel
         control={
           <Switch
@@ -714,8 +745,8 @@ function StepEditOrStatus({
           />
         }
         // Label: Absent if 0, Kudos if bool kudos, Present otherwise
-        // label={count === 0 ? 'Absent' : isKudos ? 'Kudos' : 'Present'}
-        // labelPlacement="start"
+        label={count === 0 ? 'Absent' : isKudos ? 'Kudos' : 'Present'}
+        labelPlacement="start"
         sx={{
           '.MuiFormControlLabel-label': {
             fontWeight: 700,
@@ -735,7 +766,25 @@ function StepEditOrStatus({
 
   // For count steps, show increment/decrement and current value as a button group
   if (step.type === 'count') {
-    return (
+    return readOnly ? (
+      <Box
+        sx={{
+          px: 2,
+          minWidth: 36,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontWeight: 700,
+          fontSize: 18,
+          color: 'text.primary',
+          bgcolor: 'transparent',
+          userSelect: 'none',
+          ml: 2,
+        }}
+      >
+        {count}
+      </Box>
+    ) : (
       <ButtonGroup
         variant="outlined"
         sx={{
