@@ -106,17 +106,22 @@ function FriendSteps({ friendUserId, headingColor }) {
     acc[headingId].steps.push(step);
     return acc;
   }, {});
-
+  
   // Sort groups to put 'Others' at the end
   const sortedGroups = Object.values(groupedSteps).sort((a, b) => {
     if (a.heading.id === 'others') return 1;
     if (b.heading.id === 'others') return -1;
     return a.heading.name.localeCompare(b.heading.name);
   });
-
+  
+  // console.log('Grouped Steps:', sortedGroups);
   return (
     <>
-      {sortedGroups.map(({ heading, steps }) => (
+      {sortedGroups.map(({ heading, steps }) => {
+// console.log('Rendering Heading:', heading, steps);
+
+        return 
+        
         <HeadingAccordion
           key={heading.id}
           heading={heading}
@@ -134,7 +139,7 @@ function FriendSteps({ friendUserId, headingColor }) {
           handleDecrement={noop}
           readOnly={true} // Pass readOnly prop
         />
-      ))}
+      })}
     </>
   );
 }
@@ -265,7 +270,8 @@ function FriendsPage() {
                 <DeleteIcon />
               </IconButton>
             ) : (
-              expanded[friend.friendUserId] ? null : (
+              expanded[friend.friendUserId] ? 
+              (
                 <IconButton
                   size="small"
                   color="info"
@@ -277,6 +283,8 @@ function FriendsPage() {
                   <AssessmentIcon />
                 </IconButton>
               )
+              : 
+              null 
             )}
           </AccordionSummary>
           <AccordionDetails
@@ -290,15 +298,6 @@ function FriendsPage() {
               friendUserId={friend.friendUserId}
               headingColor={headingColor}
             />
-            <Box mt={2}>
-              <Link
-                href={`/target/friends/report?id=${friend.friendUserId}`}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-              >
-                <AssessmentIcon />
-                Report
-              </Link>
-            </Box>
           </AccordionDetails>
         </Accordion>
       );

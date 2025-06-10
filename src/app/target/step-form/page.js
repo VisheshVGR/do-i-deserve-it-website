@@ -95,9 +95,11 @@ function StepForm() {
     try {
       const payload = {
         title: title.trim(),
+        description: description.trim(),
+        isPublic,
         targetHeadingId,
+        icon,
         type,
-        goal: type === 'number' ? Number(goal) : undefined,
         days: type === 'custom' ? days : undefined
       };
 

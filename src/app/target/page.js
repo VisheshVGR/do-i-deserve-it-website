@@ -23,6 +23,7 @@ import DoneIcon from '@mui/icons-material/Done';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import PlaylistAddCheckIcon from '@mui/icons-material/PlaylistAddCheck';
 import MenuIcon from '@mui/icons-material/Menu';
+import PublicIcon from '@mui/icons-material/Public';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SaveIcon from '@mui/icons-material/Save';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -69,6 +70,7 @@ function useDebounce(func, delay) {
 // Accordion for a single heading and its steps
 export function HeadingAccordion({
   heading,
+  setData,
   steps,
   editMode,
   handleEditHeading,
@@ -83,43 +85,85 @@ export function HeadingAccordion({
   StepComponent = StepRow, // Add default StepRow as StepComponent
 }) {
   // Use heading.color or fallback
+  // console.log('HeadingAccordion props:', {
+  //   heading,
+  //   setData,
+  //   steps,
+  //   editMode,
+  //   handleEditHeading,
+  //   stepInputs,
+  //   stepLoading,
+  //   todayShort,
+  //   handleStepInput,
+  //   handleEditStep,
+  //   handleIncrement,
+  //   handleDecrement,
+  //   readOnly,
+  //   StepComponent,
+  // });
   const headingColor = heading.color || '#FF7043';
   const headingTextColor = getContrastText(headingColor);
   const detailsBg = getSubtleBg(headingColor);
 
   const toggleHeadingExpanded = async (headingId, isExpanded) => {
     try {
-      const response = await api.patch(`targetHeadings/${headingId}/toggle`, { isExpanded });
+      const response = await api.patch(`targetHeadings/${headingId}/toggle`, {
+        isExpanded,
+      });
       // No need to update local state, fetchData() will refresh from server
-      if (response.data && response.data.isExpanded !== undefined) {
-        // Update the heading's isExpanded state in the local data
-        setData(prevData => {
-          return prevData.map(group => {
-            if (group.heading.id === headingId) {
-              return {
-                ...group,
-                heading: {
-                  ...group.heading,
-                  isExpanded: response.data.isExpanded
-                }
-              };
-            }
-            return group;
-          });
-        });
-      }
+      // if (response.data && response.data.isExpanded !== undefined) {
+      //   // Update the heading's isExpanded state in the local data
+      //   setData((prevData) => {
+      //     return prevData.map((group) => {
+      //       if (group.heading.id === headingId) {
+      //         return {
+      //           ...group,
+      //           heading: {
+      //             ...group.heading,
+      //             isExpanded: response.data.isExpanded,
+      //           },
+      //         };
+      //       }
+      //       return group;
+      //     });
+      //   });
+      // }
     } catch (error) {
-      console.error("Failed to toggle heading expanded state:", error);
+      console.error('Failed to toggle heading expanded state:', error);
       // Optionally, show a snackbar error message
     }
   };
 
-  const debouncedToggleHeadingExpanded = useDebounce(toggleHeadingExpanded, 500);
+  const debouncedToggleHeadingExpanded = useDebounce(
+    toggleHeadingExpanded,
+    500
+  );
 
   const handleAccordionChange = (event, isExpanded) => {
-    if (readOnly) return; // Prevent toggle if readOnly
+    
+    // Optimistically update the local state
+    setData((prevData) => {
+      return prevData.map((group) => {
+        if (group.heading.id === heading.id) {
+          return {
+            ...group,
+            heading: {
+              ...group.heading,
+              isExpanded: !group.heading.isExpanded, // Toggle the local state
+            },
+          };
+        }
+        return group;
+      });
+    });
+    
+    
+    if (readOnly) return; // Prevent updating toggle if readOnly
     if (heading.id === 'no-heading') return; // Don't trigger API call for "Others" heading
-    debouncedToggleHeadingExpanded(heading.id, isExpanded);
+
+    debouncedToggleHeadingExpanded(heading.id, !heading.isExpanded);
+
+    // debouncedToggleHeadingExpanded(heading.id, !heading.isExpanded); // Send the toggled value
   };
 
   return (
@@ -173,16 +217,21 @@ export function HeadingAccordion({
           borderBottomRightRadius: '12px',
         }}
       >
-        <Box sx={{ overflowX: 'auto', whiteSpace: 'nowrap', py: 1 }}>
+        <Box sx={{ py: 1 }}>
           {/* Show "No steps" if there are no steps */}
           {steps.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" align='center' marginY={2}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              align="center"
+              marginY={2}
+            >
               No steps
             </Typography>
           ) : (
             // Render each step in this heading
             steps.map((step, idx) => (
-              <Box key={step.id} sx={{ display: 'inline-block', mr: 2 }}>
+              <Box key={step.id} sx={{ display: 'inline-block', mr: 2, width: "100%" }}>
                 <StepComponent
                   step={step}
                   editMode={editMode}
@@ -329,7 +378,7 @@ function Target() {
       });
       notify('Step updated!', 'success');
     } catch (error) {
-      console.error("Error saving step data:", error);
+      console.error('Error saving step data:', error);
       notify('Failed to update step', 'error');
     }
   };
@@ -428,7 +477,7 @@ function Target() {
 
   // --- Main Render ---
   return (
-    <Box sx={{ p: 2, position: 'relative', minHeight: '70vh', mb : 8 }}>
+    <Box sx={{ p: 2, position: 'relative', minHeight: '70vh', mb: 8 }}>
       {/* Show "No data" if there are no headings/steps */}
       {data.length === 0 ? (
         <Box
@@ -447,6 +496,7 @@ function Target() {
           <HeadingAccordion
             key={heading.id}
             heading={heading}
+            setData={setData}
             steps={steps}
             editMode={editMode}
             handleEditHeading={handleEditHeading}
@@ -565,7 +615,7 @@ function getSubtleBg(bgColor) {
 function StepRow({
   step,
   editMode,
-  stepInputs,
+  stepInputs, // THIS IS EMPTY 
   stepLoading,
   todayShort,
   handleStepInput,
@@ -576,6 +626,7 @@ function StepRow({
   readOnly = false, // Add readOnly prop
 }) {
   // Current value for this step
+  // console.log ('StepRow props:', step.id, stepInputs);
   const count = stepInputs[step.id] ?? 0;
 
   // Whether this step is a "kudos" (extra day)
@@ -607,7 +658,6 @@ function StepRow({
         },
         cursor: 'default', // No pointer/click effect
         borderRadius: 2,
-        justifyContent: 'space-between', // Push content to start and end
       }}
     >
       {/* Icon with heading color */}
@@ -631,12 +681,12 @@ function StepRow({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: hasDescription ? 'flex-start' : 'center',
-          minWidth: 0, // Allow text to truncate
-          overflow: 'visible', // Show all text
         }}
       >
-        <Typography fontWeight={500}>
-          {step.title}
+        <Typography fontWeight={500}>{step.title}
+          {
+            readOnly ? null : step.isPublic && <PublicIcon sx={{ height: "1ch"}}/>
+          }
         </Typography>
         {hasDescription && (
           <Typography variant="body2" color="text.secondary">
@@ -701,7 +751,7 @@ function StepEditOrStatus({
         ) : (
           <WarningIcon sx={{ color: 'warning.dark', mr: 0.5 }} />
         )}
-        <Box
+        {/* <Box
           component="span"
           sx={{
             display: 'inline-block',
@@ -719,13 +769,14 @@ function StepEditOrStatus({
           }}
         >
           {step.status}
-        </Box>
+        </Box> */}
       </Box>
     );
   }
 
   // If step is boolean, show toggle with colored label
   if (step.type === 'bool') {
+    // console.log ("im boolenan step", step, count, isKudos);
     return readOnly ? (
       <Typography
         sx={{
