@@ -67,195 +67,6 @@ function useDebounce(func, delay) {
   return debouncedFunction;
 }
 
-// Accordion for a single heading and its steps
-export function HeadingAccordion({
-  heading,
-  setData,
-  steps,
-  editMode,
-  handleEditHeading,
-  stepInputs,
-  stepLoading,
-  todayShort,
-  handleStepInput,
-  handleEditStep,
-  handleIncrement,
-  handleDecrement,
-  readOnly = false, // Add readOnly prop
-  StepComponent = StepRow, // Add default StepRow as StepComponent
-}) {
-  // Use heading.color or fallback
-  // console.log('HeadingAccordion props:', {
-  //   heading,
-  //   setData,
-  //   steps,
-  //   editMode,
-  //   handleEditHeading,
-  //   stepInputs,
-  //   stepLoading,
-  //   todayShort,
-  //   handleStepInput,
-  //   handleEditStep,
-  //   handleIncrement,
-  //   handleDecrement,
-  //   readOnly,
-  //   StepComponent,
-  // });
-  const headingColor = heading.color || '#FF7043';
-  const headingTextColor = getContrastText(headingColor);
-  const detailsBg = getSubtleBg(headingColor);
-
-  const toggleHeadingExpanded = async (headingId, isExpanded) => {
-    try {
-      const response = await api.patch(`targetHeadings/${headingId}/toggle`, {
-        isExpanded,
-      });
-      // No need to update local state, fetchData() will refresh from server
-      // if (response.data && response.data.isExpanded !== undefined) {
-      //   // Update the heading's isExpanded state in the local data
-      //   setData((prevData) => {
-      //     return prevData.map((group) => {
-      //       if (group.heading.id === headingId) {
-      //         return {
-      //           ...group,
-      //           heading: {
-      //             ...group.heading,
-      //             isExpanded: response.data.isExpanded,
-      //           },
-      //         };
-      //       }
-      //       return group;
-      //     });
-      //   });
-      // }
-    } catch (error) {
-      console.error('Failed to toggle heading expanded state:', error);
-      // Optionally, show a snackbar error message
-    }
-  };
-
-  const debouncedToggleHeadingExpanded = useDebounce(
-    toggleHeadingExpanded,
-    500
-  );
-
-  const handleAccordionChange = (event, isExpanded) => {
-    
-    // Optimistically update the local state
-    setData((prevData) => {
-      return prevData.map((group) => {
-        if (group.heading.id === heading.id) {
-          return {
-            ...group,
-            heading: {
-              ...group.heading,
-              isExpanded: !group.heading.isExpanded, // Toggle the local state
-            },
-          };
-        }
-        return group;
-      });
-    });
-    
-    
-    if (readOnly) return; // Prevent updating toggle if readOnly
-    if (heading.id === 'no-heading') return; // Don't trigger API call for "Others" heading
-
-    debouncedToggleHeadingExpanded(heading.id, !heading.isExpanded);
-
-    // debouncedToggleHeadingExpanded(heading.id, !heading.isExpanded); // Send the toggled value
-  };
-
-  return (
-    <Accordion
-      expanded={heading.isExpanded}
-      onChange={handleAccordionChange}
-      sx={{
-        mb: 2,
-        borderRadius: '12px !important',
-        overflow: 'hidden',
-        '&:before': {
-          display: 'none',
-        },
-      }}
-    >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon sx={{ color: headingTextColor }} />}
-        sx={{
-          bgcolor: headingColor,
-          color: headingTextColor,
-          fontWeight: 700,
-          '& .MuiTypography-root': {
-            fontWeight: 700,
-            color: headingTextColor,
-          },
-        }}
-      >
-        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-          <Typography sx={{ fontWeight: 700, color: headingTextColor }}>
-            {heading.name}
-          </Typography>
-        </Box>
-        {/* Edit heading button (only in edit mode and not for 'no-heading') */}
-        {editMode && heading.id !== 'no-heading' && (
-          <IconButton
-            size="small"
-            sx={{ ml: 1, color: headingTextColor }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEditHeading(heading.id);
-            }}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        )}
-      </AccordionSummary>
-      <AccordionDetails
-        sx={{
-          bgcolor: detailsBg,
-          borderBottomLeftRadius: '12px',
-          borderBottomRightRadius: '12px',
-        }}
-      >
-        <Box sx={{ py: 1 }}>
-          {/* Show "No steps" if there are no steps */}
-          {steps.length === 0 ? (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              align="center"
-              marginY={2}
-            >
-              No steps
-            </Typography>
-          ) : (
-            // Render each step in this heading
-            steps.map((step, idx) => (
-              <Box key={step.id} sx={{ display: 'inline-block', mr: 2, width: "100%" }}>
-                <StepComponent
-                  step={step}
-                  editMode={editMode}
-                  stepInputs={stepInputs}
-                  stepLoading={stepLoading}
-                  todayShort={todayShort}
-                  handleStepInput={handleStepInput}
-                  handleEditStep={handleEditStep}
-                  handleIncrement={handleIncrement}
-                  handleDecrement={handleDecrement}
-                  headingColor={heading.color}
-                  readOnly={readOnly} // Pass readOnly to StepComponent
-                />
-                {/* Divider between steps except after last */}
-                {idx < steps.length - 1 && <Divider sx={{ mx: 0, my: 1 }} />}
-              </Box>
-            ))
-          )}
-        </Box>
-      </AccordionDetails>
-    </Accordion>
-  );
-}
-
 // Main Target component
 function Target() {
   // State for edit mode (true = edit, false = view)
@@ -266,10 +77,6 @@ function Target() {
   const [headings, setHeadings] = useState([]);
   // State for current step input values (by step id)
   const [stepInputs, setStepInputs] = useState({});
-  // State for initial step input values (for change detection)
-  const [initialStepInputs, setInitialStepInputs] = useState({});
-  // State for loading status of each step (by step id)
-  const [stepLoading, setStepLoading] = useState({});
   // State for floating SpeedDial open/close
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
 
@@ -304,12 +111,12 @@ function Target() {
 
         stepsRes.data.forEach((step) => {
           const headingId =
-            step.targetHeading?.id || step.targetHeadingId || 'no-heading';
+            step.targetHeading?.id || step.targetHeadingId || 'others-heading';
           if (!grouped[headingId]) {
             grouped[headingId] = {
               heading: step.targetHeading
                 ? step.targetHeading
-                : { id: 'no-heading', name: 'Others' },
+                : { id: 'others-heading', name: 'Others' },
               steps: [],
             };
           }
@@ -364,7 +171,6 @@ function Target() {
             : 0;
       }
     });
-    setInitialStepInputs(initial);
     setStepInputs(initial);
     hideLoader();
   }, [data, hideLoader, showLoader]);
@@ -436,42 +242,6 @@ function Target() {
   // Toggles edit mode on/off
   const handleToggleEdit = () => setEditMode((e) => !e);
 
-  // Saves all changed steps to the backend
-  const handleSaveAll = async () => {
-    showLoader();
-    try {
-      // Find steps that have changed
-      const changedSteps = Object.keys(stepInputs).filter(
-        (id) => stepInputs[id] !== initialStepInputs[id]
-      );
-      // Save each changed step
-      await Promise.all(
-        changedSteps.map((id) => {
-          const step = data.flatMap((g) => g.steps).find((s) => s.id === id);
-          return api.post(`targetSteps/${id}/data`, {
-            date: getToday(),
-            count:
-              step.type === 'bool'
-                ? stepInputs[id]
-                  ? 1
-                  : 0
-                : Math.max(0, Number(stepInputs[id]) || 0),
-          });
-        })
-      );
-      setInitialStepInputs({ ...stepInputs });
-      notify('All changes saved!', 'success');
-    } catch (e) {
-      notify('Failed to save changes', 'error');
-    }
-    hideLoader();
-  };
-
-  // Checks if there are unsaved changes
-  const hasUnsavedChanges = Object.keys(stepInputs).some(
-    (id) => stepInputs[id] !== initialStepInputs[id]
-  );
-
   // Get today's short weekday string
   const todayShort = getTodayShort();
 
@@ -501,7 +271,6 @@ function Target() {
             editMode={editMode}
             handleEditHeading={handleEditHeading}
             stepInputs={stepInputs}
-            stepLoading={stepLoading}
             todayShort={todayShort}
             handleStepInput={handleStepInput}
             handleEditStep={handleEditStep}
@@ -510,12 +279,6 @@ function Target() {
           />
         ))
       )}
-
-      {/* Floating Save SpeedDial (shows only if there are unsaved changes) */}
-      {/* <FloatingSaveSpeedDial
-        hasUnsavedChanges={hasUnsavedChanges}
-        handleSaveAll={handleSaveAll}
-      /> */}
 
       {/* Floating Main SpeedDial for actions */}
       <FloatingMainSpeedDial
@@ -532,19 +295,156 @@ function Target() {
 
 // --- Modular Components & Helpers ---
 
-// Floating Save SpeedDial button (shows only if there are unsaved changes)
-function FloatingSaveSpeedDial({ hasUnsavedChanges, handleSaveAll }) {
-  if (!hasUnsavedChanges) return null;
+// Accordion for a single heading and its steps
+export function HeadingAccordion({
+  heading,
+  setData,
+  steps,
+  editMode,
+  handleEditHeading,
+  stepInputs,
+  todayShort,
+  handleStepInput,
+  handleEditStep,
+  handleIncrement,
+  handleDecrement,
+  readOnly = false, // Add readOnly prop
+  StepComponent = StepRow, // Add default StepRow as StepComponent
+}) {
+  // Use heading.color or fallback
+  const headingColor = heading.color || '#FF7043';
+  const headingTextColor = getContrastText(headingColor);
+  const detailsBg = getSubtleBg(headingColor);
+
+  const toggleHeadingExpanded = async (headingId, isExpanded) => {
+    try {
+      const response = await api.patch(`targetHeadings/${headingId}/toggle`, {
+        isExpanded,
+      });
+    } catch (error) {
+      console.error('Failed to toggle heading expanded state:', error);
+      // Optionally, show a snackbar error message
+    }
+  };
+
+  const debouncedToggleHeadingExpanded = useDebounce(
+    toggleHeadingExpanded,
+    500
+  );
+
+  const handleAccordionChange = (event, isExpanded) => {
+    // Optimistically update the local state
+    setData((prevData) => {
+      return prevData.map((group) => {
+        if (group.heading.id === heading.id) {
+          return {
+            ...group,
+            heading: {
+              ...group.heading,
+              isExpanded: !group.heading.isExpanded, // Toggle the local state
+            },
+          };
+        }
+        return group;
+      });
+    });
+
+    if (readOnly) return; // Prevent updating toggle if readOnly
+    if (heading.id === 'others-heading') return; // Don't trigger API call for "Others" heading
+
+    debouncedToggleHeadingExpanded(heading.id, !heading.isExpanded);
+  };
+
   return (
-    <SpeedDial
-      ariaLabel="Save changes"
-      sx={{ position: 'fixed', bottom: 32, right: 104, zIndex: 1100 }}
-      icon={<SaveIcon />}
-      FabProps={{ color: 'success' }}
-      onClick={handleSaveAll}
-      direction="up"
-      open
-    />
+    <Accordion
+      defaultExpanded={readOnly}
+      expanded={heading.isExpanded}
+      onChange={handleAccordionChange}
+      sx={{
+        mb: 2,
+        borderRadius: '12px !important',
+        overflow: 'hidden',
+        '&:before': {
+          display: 'none',
+        },
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon sx={{ color: headingTextColor }} />}
+        sx={{
+          bgcolor: headingColor,
+          color: headingTextColor,
+          fontWeight: 700,
+          '& .MuiTypography-root': {
+            fontWeight: 700,
+            color: headingTextColor,
+          },
+        }}
+      >
+        <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
+          <Typography sx={{ fontWeight: 700, color: headingTextColor }}>
+            {heading.name}
+          </Typography>
+        </Box>
+        {/* Edit heading button (only in edit mode and not for 'others-heading') */}
+        {editMode && heading.id !== 'others-heading' && (
+          <IconButton
+            size="small"
+            sx={{ ml: 1, color: headingTextColor }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEditHeading(heading.id);
+            }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        )}
+      </AccordionSummary>
+      <AccordionDetails
+        sx={{
+          bgcolor: detailsBg,
+          borderBottomLeftRadius: '12px',
+          borderBottomRightRadius: '12px',
+        }}
+      >
+        <Box sx={{ py: 1 }}>
+          {/* Show "No steps" if there are no steps */}
+          {steps.length === 0 ? (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              align="center"
+              marginY={2}
+            >
+              No steps
+            </Typography>
+          ) : (
+            // Render each step in this heading
+            steps.map((step, idx) => (
+              <Box
+                key={step.id}
+                sx={{ display: 'inline-block', mr: 2, width: '100%' }}
+              >
+                <StepComponent
+                  step={step}
+                  editMode={editMode}
+                  stepInputs={stepInputs}
+                  todayShort={todayShort}
+                  handleStepInput={handleStepInput}
+                  handleEditStep={handleEditStep}
+                  handleIncrement={handleIncrement}
+                  handleDecrement={handleDecrement}
+                  headingColor={heading.color}
+                  readOnly={readOnly} // Pass readOnly to StepComponent
+                />
+                {/* Divider between steps except after last */}
+                {idx < steps.length - 1 && <Divider sx={{ mx: 0, my: 1 }} />}
+              </Box>
+            ))
+          )}
+        </Box>
+      </AccordionDetails>
+    </Accordion>
   );
 }
 
@@ -615,8 +515,7 @@ function getSubtleBg(bgColor) {
 function StepRow({
   step,
   editMode,
-  stepInputs, // THIS IS EMPTY 
-  stepLoading,
+  stepInputs,
   todayShort,
   handleStepInput,
   handleEditStep,
@@ -626,7 +525,6 @@ function StepRow({
   readOnly = false, // Add readOnly prop
 }) {
   // Current value for this step
-  // console.log ('StepRow props:', step.id, stepInputs);
   const count = stepInputs[step.id] ?? 0;
 
   // Whether this step is a "kudos" (extra day)
@@ -683,10 +581,11 @@ function StepRow({
           justifyContent: hasDescription ? 'flex-start' : 'center',
         }}
       >
-        <Typography fontWeight={500}>{step.title}
-          {
-            readOnly ? null : step.isPublic && <PublicIcon sx={{ height: "1ch"}}/>
-          }
+        <Typography fontWeight={500}>
+          {step.title}
+          {readOnly
+            ? null
+            : step.isPublic && <PublicIcon sx={{ height: '1ch' }} />}
         </Typography>
         {hasDescription && (
           <Typography variant="body2" color="text.secondary">
@@ -701,7 +600,6 @@ function StepRow({
         count={count}
         isKudos={isKudos}
         isBoolKudos={isBoolKudos}
-        stepLoading={stepLoading}
         todayShort={todayShort}
         handleStepInput={handleStepInput}
         handleEditStep={handleEditStep}
@@ -720,7 +618,6 @@ function StepEditOrStatus({
   count,
   isKudos,
   isBoolKudos,
-  stepLoading,
   todayShort,
   handleStepInput,
   handleEditStep,
@@ -888,7 +785,6 @@ function StepEditOrStatus({
           size="small"
           color="error"
           onClick={() => handleDecrement(step, todayShort)}
-          disabled={stepLoading[step.id]}
           sx={{
             borderRadius: 0,
             bgcolor: 'background.paper',
@@ -918,7 +814,6 @@ function StepEditOrStatus({
           size="small"
           color="primary"
           onClick={() => handleIncrement(step, todayShort)}
-          disabled={stepLoading[step.id]}
           sx={{
             borderRadius: 0,
             bgcolor: 'background.paper',

@@ -35,6 +35,7 @@ import DoneIcon from '@mui/icons-material/Done';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 // Utils and contexts
 import withAuth from '@/utils/withAuth';
@@ -51,6 +52,8 @@ import Link from 'next/link';
 function FriendSteps({ friendUserId, headingColor }) {
   // State
   const [steps, setSteps] = useState([]);
+  // State for current step input values (by step id)
+  const [stepInputs, setStepInputs] = useState({});
 
   // Hooks
   const { showLoader, hideLoader } = useLoader();
@@ -90,6 +93,37 @@ function FriendSteps({ friendUserId, headingColor }) {
     };
   }, [friendUserId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Set initial stepInputs when data loads
+  useEffect(() => {
+    showLoader();
+    const allSteps = steps;
+    const initial = {};
+    allSteps.forEach((step) => {
+      // For count steps, sum count and kudos
+      if (
+        step.type === 'count' &&
+        step.targetStepData &&
+        step.targetStepData.length > 0
+      ) {
+        initial[step.id] =
+          Number(step.targetStepData[0].count) +
+          Number(step.targetStepData[0].kudos);
+      }
+      // For bool steps, true if count exists
+      else if (step.type === 'bool') {
+        initial[step.id] =
+          step.targetStepData &&
+          step.targetStepData[0] &&
+          step.targetStepData[0].count
+            ? 1
+            : 0;
+      }
+    });
+
+    setStepInputs(initial);
+    hideLoader();
+  }, [steps, hideLoader, showLoader]);
+
   // Group steps by their headings
   const groupedSteps = steps.reduce((acc, step) => {
     const headingId = step.targetHeadingId || 'others';
@@ -106,30 +140,24 @@ function FriendSteps({ friendUserId, headingColor }) {
     acc[headingId].steps.push(step);
     return acc;
   }, {});
-  
+
   // Sort groups to put 'Others' at the end
   const sortedGroups = Object.values(groupedSteps).sort((a, b) => {
     if (a.heading.id === 'others') return 1;
     if (b.heading.id === 'others') return -1;
     return a.heading.name.localeCompare(b.heading.name);
   });
-  
-  // console.log('Grouped Steps:', sortedGroups);
+
   return (
     <>
-      {sortedGroups.map(({ heading, steps }) => {
-// console.log('Rendering Heading:', heading, steps);
-
-        return 
-        
+      {sortedGroups.map(({ heading, steps }) => (
         <HeadingAccordion
           key={heading.id}
           heading={heading}
           steps={steps}
           editMode={false}
           handleEditHeading={noop}
-          stepInputs={{}}
-          stepLoading={{}}
+          stepInputs={stepInputs}
           todayShort={new Date().toLocaleDateString('en-US', {
             weekday: 'short',
           })}
@@ -139,7 +167,7 @@ function FriendSteps({ friendUserId, headingColor }) {
           handleDecrement={noop}
           readOnly={true} // Pass readOnly prop
         />
-      })}
+      ))}
     </>
   );
 }
@@ -269,23 +297,18 @@ function FriendsPage() {
               >
                 <DeleteIcon />
               </IconButton>
-            ) : (
-              expanded[friend.friendUserId] ? 
-              (
-                <IconButton
-                  size="small"
-                  color="info"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.location.href = `/target/friends/report?id=${friend.friendUserId}`;
-                  }}
-                >
-                  <AssessmentIcon />
-                </IconButton>
-              )
-              : 
-              null 
-            )}
+            ) : expanded[friend.friendUserId] ? (
+              <IconButton
+                size="small"
+                color="info"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.location.href = `/target/friends/report?id=${friend.friendUserId}`;
+                }}
+              >
+                <AssessmentIcon />
+              </IconButton>
+            ) : null}
           </AccordionSummary>
           <AccordionDetails
             sx={{
@@ -305,28 +328,28 @@ function FriendsPage() {
   };
 
   return (
-    <Box sx={{ p: 2, minHeight: '70vh', position: 'relative', mb : 8 }}>
+    <Box sx={{ p: 2, minHeight: '70vh', position: 'relative', mb: 8 }}>
       {renderFriendAccordions()}
 
       {/* Floating SpeedDial */}
       <SpeedDial
         ariaLabel="Friends actions"
         sx={{ position: 'fixed', bottom: 32, right: 32 }}
-        icon={<EditIcon />}
+        icon={<SettingsIcon />}
         open={speedDialOpen}
         onClick={() => setSpeedDialOpen((prev) => !prev)}
         onClose={() => setSpeedDialOpen(false)}
         direction="up"
       >
         <SpeedDialAction
-          icon={<PersonAddIcon />}
-          tooltipTitle="Add Friend"
-          onClick={() => setAddDialogOpen(true)}
-        />
-        <SpeedDialAction
           icon={editMode ? <DoneIcon /> : <EditIcon />}
           tooltipTitle={editMode ? 'Exit Edit Mode' : 'Enter Edit Mode'}
           onClick={() => setEditMode((e) => !e)}
+        />
+        <SpeedDialAction
+          icon={<PersonAddIcon />}
+          tooltipTitle="Add Friend"
+          onClick={() => setAddDialogOpen(true)}
         />
       </SpeedDial>
 
