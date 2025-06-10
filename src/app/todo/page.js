@@ -251,25 +251,26 @@ function Todo() {
     return debouncedFunction;
   }
 
-  // Fetch todos and headings
-  const fetchData = async () => {
-    showLoader();
-    try {
-      const [todosRes, headingsRes] = await Promise.all([
-        api.get('todos'),
-        api.get('todoHeadings'),
-      ]);
-      setTodos(todosRes.data || []);
-      setHeadings(headingsRes.data || []);
-      console.log('todos', todosRes.data);
-      console.log('heading', headingsRes.data);
-    } catch (err) {
-      notify('Failed to load data', 'error');
-    }
-    hideLoader();
-  };
-
   useEffect(() => {
+    // Fetch todos and headings
+    const fetchData = async () => {
+      showLoader();
+      try {
+        const [todosRes, headingsRes] = await Promise.all([
+          api.get('todos'),
+          api.get('todoHeadings'),
+        ]);
+        setTodos(todosRes.data || []);
+        setHeadings(headingsRes.data || []);
+        console.log('todos', todosRes.data);
+        console.log('heading', headingsRes.data);
+      } catch (err) {
+        notify('Failed to load data', 'error');
+      }
+      hideLoader();
+    };
+
+    
     fetchData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -296,7 +297,6 @@ function Todo() {
       return a.isDone ? 1 : -1;
     });
   });
-  console.log(groupedTodos);
 
   const handleToggleTodo = async (todoId, currentStatus) => {
     showLoader();
@@ -305,19 +305,6 @@ function Todo() {
       fetchData();
     } catch (err) {
       notify('Failed to update todo', 'error');
-    }
-    hideLoader();
-  };
-
-  const handleDeleteHeading = async (e, headingId) => {
-    e.stopPropagation();
-    showLoader();
-    try {
-      await api.delete(`todoHeadings/${headingId}`);
-      notify('Heading deleted', 'success');
-      fetchData();
-    } catch (err) {
-      notify('Failed to delete heading', 'error');
     }
     hideLoader();
   };
@@ -373,12 +360,11 @@ function Todo() {
             })
             .map(([headingId, todos]) => {
               // Find the heading object for the current headingId
-              const heading =
-                headings.find((h) => h.id === headingId) || {
-                  id: 'others-heading',
-                  name: 'Others',
-                  color: 'grey.400',
-                };
+              const heading = headings.find((h) => h.id === headingId) || {
+                id: 'others-heading',
+                name: 'Others',
+                color: 'grey.400',
+              };
 
               return (
                 <TodoHeadingAccordion

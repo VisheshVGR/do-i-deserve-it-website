@@ -76,6 +76,18 @@ export const ThemeProvider = ({ children }) => {
           },
         },
       },
+      MuiListItem: {
+        styleOverrides: {
+          root: {
+            "&.Mui-selected": {
+              backgroundColor: mode === 'light' ? 'rgba(255,255,255,0.3)' : 'rgba(50,50,50,0.7)',
+            },
+            "&:hover": {
+              backgroundColor: mode === 'light' ? 'rgba(255,255,255,0.5)' : 'rgba(50,50,50,0.5)',
+            }
+          },
+        },
+      },
       MuiDrawer: {
         styleOverrides: {
           paper: {
@@ -151,7 +163,7 @@ export const ThemeProvider = ({ children }) => {
             secondary: { main: '#FFE082' },
             background: {
               default: '#1E1E1E',
-              paper: 'rgba(30, 30, 30, 0.85)',
+              paper: 'rgba(50, 50, 50, 0.5)',
             },
             text: {
               primary: '#E0E0E0',
