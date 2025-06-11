@@ -102,6 +102,7 @@ function Reminder() {
 
   return (
     <Box sx={{...pageContainerStyles, mb: 8}}>
+      <Typography>Still figuring out how to get Reminders / Notifications...from Server to YOU</Typography>
       {reminders.length === 0 ? (
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
           <Typography variant="h6" color="text.secondary">

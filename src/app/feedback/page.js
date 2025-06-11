@@ -134,7 +134,9 @@ export default function FeedbackPage() {
       {tab === 'my' && (
         <>
           {!myFeedback.length && !allFeedback.length ? (
-            <CircularProgress />
+            <Typography align="center" color="text.secondary" sx={{ mt: 6 }}>
+              No feedback as of now, why don&apos;t you share your views?
+            </Typography>
           ) : (
             renderFeedbackList(myFeedback)
           )}
@@ -143,7 +145,9 @@ export default function FeedbackPage() {
       {tab === 'all' && (
         <>
           {!allFeedback.length ? (
-            <CircularProgress />
+            <Typography align="center" color="text.secondary" sx={{ mt: 6 }}>
+              No feedback as of now, why don&apos;t you share your views?
+            </Typography>
           ) : (
             renderFeedbackList(allFeedback, true)
           )}

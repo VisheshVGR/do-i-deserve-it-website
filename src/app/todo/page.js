@@ -66,6 +66,7 @@ function TodoHeadingAccordion({
   handleToggleTodo,
   handleEdit,
   handleHeadingClick,
+  router,
 }) {
   const headingColor = heading.color || '#FF7043';
   const headingTextColor = getContrastText(headingColor);
@@ -77,10 +78,10 @@ function TodoHeadingAccordion({
       onChange={handleHeadingClick(heading)}
       sx={{
         mb: 2,
-        borderRadius: '12px !important', // Force rounded corners always
-        overflow: 'hidden', // Ensure content doesn't overflow rounded corners
+        borderRadius: '12px !important',
+        overflow: 'hidden',
         '&:before': {
-          display: 'none', // Remove default divider
+          display: 'none',
         },
         transition: 'height 0.3s ease-in-out',
       }}
@@ -102,7 +103,8 @@ function TodoHeadingAccordion({
             {heading.name} ({todos.length})
           </Typography>
         </Box>
-        {editMode && (
+        {/* Only show edit icon if not "others-heading" */}
+        {editMode && heading.id !== 'others-heading' && (
           <IconButton
             size="small"
             sx={{ ml: 1, color: headingTextColor }}
@@ -177,7 +179,7 @@ function TodoHeadingAccordion({
 }
 
 // SpeedDial component
-function TodoSpeedDial({ editMode, speedDialOpen, setSpeedDialOpen, router }) {
+function TodoSpeedDial({ editMode, setEditMode, speedDialOpen, setSpeedDialOpen, router }) {
   return (
     <SpeedDial
       ariaLabel="Todo actions"
@@ -373,10 +375,9 @@ function Todo() {
                   todos={todos}
                   editMode={editMode}
                   handleToggleTodo={handleToggleTodo}
-                  handleEdit={(id) =>
-                    router.push(`/todo/heading-form?id=${id}`)
-                  }
+                  handleEdit={(id) => router.push(`/todo/heading-form?id=${id}`)}
                   handleHeadingClick={handleHeadingClick}
+                  router={router} // Pass router if needed inside the accordion
                 />
               );
             })}
@@ -386,6 +387,7 @@ function Todo() {
       {/* Speed Dial styled like Target page */}
       <TodoSpeedDial
         editMode={editMode}
+        setEditMode={setEditMode}
         speedDialOpen={speedDialOpen}
         setSpeedDialOpen={setSpeedDialOpen}
         router={router}
