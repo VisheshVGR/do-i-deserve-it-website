@@ -100,7 +100,7 @@ function StepForm() {
         targetHeadingId,
         icon,
         type,
-        days: type === 'custom' ? days : undefined
+        days: days
       };
 
       if (id) {

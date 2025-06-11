@@ -31,6 +31,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import SettingsIcon from '@mui/icons-material/Settings';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import AssessmentIcon from '@mui/icons-material/Assessment'; // Import AssessmentIcon
 import { useLoader } from '@/context/LoaderContext';
 import { useSnackbarUtils } from '@/context/SnackbarContext';
 import api from '@/utils/axios';
@@ -79,6 +80,8 @@ function Target() {
   const [stepInputs, setStepInputs] = useState({});
   // State for floating SpeedDial open/close
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
+  // New state for report view mode
+  const [inReportViewMode, setInReportViewMode] = useState(false);
 
   // Router for navigation
   const router = useRouter();
@@ -166,7 +169,8 @@ function Target() {
         initial[step.id] =
           step.targetStepData &&
           step.targetStepData[0] &&
-          step.targetStepData[0].count
+          (Number(step.targetStepData[0].count) +
+          Number(step.targetStepData[0].kudos))
             ? 1
             : 0;
       }
@@ -176,11 +180,12 @@ function Target() {
   }, [data, hideLoader, showLoader]);
 
   // Generic function to save step data
-  const saveStepData = async (stepId, value) => {
+  const saveStepData = async (stepId, value, isKudos) => {
     try {
       await api.post(`targetSteps/${stepId}/data`, {
         date: getToday(),
-        count: value,
+        count: isKudos ? 0 : value,
+        kudos: isKudos ? value : 0,
       });
       notify('Step updated!', 'success');
     } catch (error) {
@@ -193,18 +198,22 @@ function Target() {
   const debouncedSaveStepData = useDebounce(saveStepData, 500);
 
   // Handles updating the value for a step input
-  const handleStepInput = (stepId, value) => {
+  const handleStepToggle = (stepId, value, isKudos = false) => {
     if (typeof value === 'number' && value < 0) value = 0;
     setStepInputs((inputs) => ({ ...inputs, [stepId]: value }));
-    debouncedSaveStepData(stepId, value); // Call debounced save
+    debouncedSaveStepData(stepId, value, isKudos); // Call debounced save
   };
 
   // Handles incrementing the value for a count step
   const handleIncrement = (step, todayShort) => {
     setStepInputs((inputs) => {
       const newValue = Number(inputs[step.id] || 0) + 1;
+      const isKudos = step.days &&
+      !step.days.includes(todayShort) &&
+      newValue > 0;
+      console.log("isKudosInc", isKudos, newValue);
       setStepInputs((inputs) => ({ ...inputs, [step.id]: newValue }));
-      debouncedSaveStepData(step.id, newValue);
+      debouncedSaveStepData(step.id, newValue, isKudos);
       return { ...inputs, [step.id]: newValue };
     });
   };
@@ -213,8 +222,13 @@ function Target() {
   const handleDecrement = (step, todayShort) => {
     setStepInputs((inputs) => {
       const newValue = Math.max(0, Number(inputs[step.id] || 0) - 1);
+      const isKudos = step.days &&
+      !step.days.includes(todayShort) &&
+      newValue > 0;
+      console.log("isKudosDec", isKudos, newValue);
+
       setStepInputs((inputs) => ({ ...inputs, [step.id]: newValue }));
-      debouncedSaveStepData(step.id, newValue);
+      debouncedSaveStepData(step.id, newValue, isKudos);
       return { ...inputs, [step.id]: newValue };
     });
   };
@@ -241,6 +255,8 @@ function Target() {
 
   // Toggles edit mode on/off
   const handleToggleEdit = () => setEditMode((e) => !e);
+  // New function to toggle report view mode
+  const handleToggleReportViewMode = () => setInReportViewMode((e) => !e);
 
   // Get today's short weekday string
   const todayShort = getTodayShort();
@@ -269,10 +285,11 @@ function Target() {
             setData={setData}
             steps={steps}
             editMode={editMode}
+            inReportViewMode={inReportViewMode} // Pass inReportViewMode to HeadingAccordion
             handleEditHeading={handleEditHeading}
             stepInputs={stepInputs}
             todayShort={todayShort}
-            handleStepInput={handleStepInput}
+            handleStepToggle={handleStepToggle}
             handleEditStep={handleEditStep}
             handleIncrement={handleIncrement}
             handleDecrement={handleDecrement}
@@ -285,7 +302,9 @@ function Target() {
         speedDialOpen={speedDialOpen}
         setSpeedDialOpen={setSpeedDialOpen}
         editMode={editMode}
+        inReportViewMode={inReportViewMode} // Pass inReportViewMode to FloatingMainSpeedDial
         handleToggleEdit={handleToggleEdit}
+        handleToggleReportViewMode={handleToggleReportViewMode} // Pass handleToggleReportViewMode
         handleAddStep={handleAddStep}
         handleAddHeading={handleAddHeading}
       />
@@ -301,10 +320,11 @@ export function HeadingAccordion({
   setData,
   steps,
   editMode,
+  inReportViewMode, // Receive inReportViewMode
   handleEditHeading,
   stepInputs,
   todayShort,
-  handleStepInput,
+  handleStepToggle,
   handleEditStep,
   handleIncrement,
   handleDecrement,
@@ -428,9 +448,10 @@ export function HeadingAccordion({
                 <StepComponent
                   step={step}
                   editMode={editMode}
+                  inReportViewMode={inReportViewMode} // Pass inReportViewMode to StepComponent
                   stepInputs={stepInputs}
                   todayShort={todayShort}
-                  handleStepInput={handleStepInput}
+                  handleStepToggle={handleStepToggle}
                   handleEditStep={handleEditStep}
                   handleIncrement={handleIncrement}
                   handleDecrement={handleDecrement}
@@ -453,7 +474,9 @@ function FloatingMainSpeedDial({
   speedDialOpen,
   setSpeedDialOpen,
   editMode,
+  inReportViewMode, // Receive inReportViewMode
   handleToggleEdit,
+  handleToggleReportViewMode, // Receive handleToggleReportViewMode
   handleAddStep,
   handleAddHeading,
 }) {
@@ -476,6 +499,16 @@ function FloatingMainSpeedDial({
           setSpeedDialOpen(false);
         }}
         FabProps={{ color: editMode ? 'success' : 'primary' }}
+      />
+      {/* Toggle report view mode */}
+      <SpeedDialAction
+        icon={inReportViewMode ? <DoneIcon /> : <AssessmentIcon />} // Use AssessmentIcon
+        tooltipTitle={inReportViewMode ? 'Exit Report View Mode' : 'Enter Report View Mode'}
+        onClick={() => {
+          handleToggleReportViewMode(); // Call handleToggleReportViewMode
+          setSpeedDialOpen(false);
+        }}
+        FabProps={{ color: inReportViewMode ? 'success' : 'primary' }}
       />
       {/* Add step */}
       <SpeedDialAction
@@ -515,9 +548,10 @@ function getSubtleBg(bgColor) {
 function StepRow({
   step,
   editMode,
+  inReportViewMode, // Receive inReportViewMode
   stepInputs,
   todayShort,
-  handleStepInput,
+  handleStepToggle,
   handleEditStep,
   handleIncrement,
   handleDecrement,
@@ -529,17 +563,11 @@ function StepRow({
 
   // Whether this step is a "kudos" (extra day)
   const isKudos =
-    step.type === 'count' &&
-    step.days &&
-    !step.days.includes(todayShort) &&
-    count > 0;
-  const isBoolKudos =
-    step.type === 'bool' &&
     step.days &&
     !step.days.includes(todayShort) &&
     count > 0;
 
-  // Icon for this step
+    // Icon for this step
   const IconComp = ICON_MAP[step.icon] || ICON_MAP['Star'];
   const hasDescription = !!step.description;
 
@@ -597,11 +625,11 @@ function StepRow({
       <StepEditOrStatus
         step={step}
         editMode={editMode}
+        inReportViewMode={inReportViewMode} // Pass inReportViewMode to StepEditOrStatus
         count={count}
         isKudos={isKudos}
-        isBoolKudos={isBoolKudos}
         todayShort={todayShort}
-        handleStepInput={handleStepInput}
+        handleStepToggle={handleStepToggle}
         handleEditStep={handleEditStep}
         handleIncrement={handleIncrement}
         handleDecrement={handleDecrement}
@@ -615,16 +643,32 @@ function StepRow({
 function StepEditOrStatus({
   step,
   editMode,
+  inReportViewMode, // Receive inReportViewMode
   count,
   isKudos,
-  isBoolKudos,
   todayShort,
-  handleStepInput,
+  handleStepToggle,
   handleEditStep,
   handleIncrement,
   handleDecrement,
   readOnly = false, // Add readOnly prop
 }) {
+  const router = useRouter(); // Get router instance
+
+  // If in report view mode, show assessment icon
+  if (inReportViewMode) {
+    return (
+      <IconButton
+        size="small"
+        sx={{ ml: 1 }}
+        onClick={() => router.push(`/target/report?stepId=${step.id}`)} // Redirect to report page
+        color="primary"
+      >
+        <AssessmentIcon fontSize="small" />
+      </IconButton>
+    );
+  }
+
   // If in edit mode, show edit button
   if (editMode) {
     return (
@@ -697,7 +741,8 @@ function StepEditOrStatus({
             checked={!!count}
             onChange={(e) => {
               const newValue = e.target.checked ? 1 : 0;
-              handleStepInput(step.id, newValue);
+              console.log (newValue, isKudos);
+              handleStepToggle(step.id, newValue, !isKudos);
             }}
             color="success"
             sx={{

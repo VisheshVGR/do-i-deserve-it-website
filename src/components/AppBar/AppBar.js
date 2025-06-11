@@ -31,13 +31,13 @@ export default function CustomAppBar() {
       <AppBar position="static" elevation={0} sx={{ backgroundColor: 'transparent', boxShadow: 0 }}>
         <Toolbar>
           <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-            {icon && (
+            {mounted && icon && (
               <Box sx={{ mr: 1, display: 'flex', alignItems: 'center'  }}>
                 {React.cloneElement(icon, { style: { color: icon.props.sx?.color } })} {/* Clone and apply color */}
               </Box>
             )}
             <Typography variant="h6" color="inherit">
-              {label}
+              {mounted ? label : ''}
             </Typography>
           </Box>
           <IconButton

@@ -6,6 +6,7 @@ import { LoaderProvider } from '@/context/LoaderContext';
 import UniversalLoader from '@/components/UniversalLoader';
 import { SnackbarProviderWithUtils } from '@/context/SnackbarContext';
 import AxiosInjector from '@/components/AxiosInjector';
+import { Container } from '@mui/material'; // Import Container
 
 export const metadata = {
   title: 'Do I Deserve It',
@@ -25,7 +26,9 @@ export default function RootLayout({ children }) {
                   <UniversalLoader />
                   <CustomAppBar />
                   {/* Page Content */}
-                  {children}
+                  <Container maxWidth="lg"> {/* Wrap children with Container */}
+                    {children}
+                  </Container>
                 </SnackbarProviderWithUtils>
               </ThemeWrapper>
             </AuthProvider>
