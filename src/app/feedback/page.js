@@ -46,6 +46,7 @@ export default function FeedbackPage() {
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const [myFeedback, setMyFeedback] = useState([]);
   const [allFeedback, setAllFeedback] = useState([]);
+  const [allTab, setAllTab] = useState('all'); // NEW: for filtering in All Feedback
 
   const { user } = useAuth();
   const { showLoader, hideLoader } = useLoader();
@@ -71,6 +72,12 @@ export default function FeedbackPage() {
     }
     hideLoader();
   };
+
+  // Filtered feedback for "All Feedback" tab
+  const filteredAllFeedback =
+    allTab === 'all'
+      ? allFeedback
+      : allFeedback.filter((fb) => fb.tag === allTab);
 
   // Render feedback list
   const renderFeedbackList = (list, showUser = false) =>
@@ -144,12 +151,26 @@ export default function FeedbackPage() {
       )}
       {tab === 'all' && (
         <>
-          {!allFeedback.length ? (
+          {/* NEW: Filter tabs for All Feedback */}
+          <Tabs
+            value={allTab}
+            onChange={(_, v) => setAllTab(v)}
+            sx={{ mb: 2 }}
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            <Tab label="All" value="all" />
+            <Tab label="Feedback" value="feedback" />
+            <Tab label="Bug" value="bug" />
+            <Tab label="Feature Request" value="feature request" />
+            <Tab label="UI / UX Issue" value="ui / ux issue" />
+          </Tabs>
+          {!filteredAllFeedback.length ? (
             <Typography align="center" color="text.secondary" sx={{ mt: 6 }}>
               No feedback as of now, why don&apos;t you share your views?
             </Typography>
           ) : (
-            renderFeedbackList(allFeedback, true)
+            renderFeedbackList(filteredAllFeedback, true)
           )}
         </>
       )}

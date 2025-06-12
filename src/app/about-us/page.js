@@ -9,6 +9,16 @@ import {
   Link,
   Divider,
 } from '@mui/material';
+import {
+  pink,
+  blue,
+  green,
+  orange,
+  purple,
+  yellow,
+  deepOrange,
+  teal,
+} from '@mui/material/colors';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import PublicIcon from '@mui/icons-material/Public';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -36,14 +46,25 @@ export default function AboutUsPage() {
           bgcolor: (theme) => theme.palette.background.paper,
         }}
       >
-        <Typography variant="h4" fontWeight={700} gutterBottom align="center">
+        <Typography
+          variant="h5"
+          fontWeight={700}
+          gutterBottom
+          align="center"
+          sx={{ color: purple[400] }}
+        >
           About This Project
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           Just trying to get my life together and stay on track each day — and a
           little friendly competition never hurts!
           <br />
-          That’s how this project came to life. Would love your support!
+          That’s how this project came to life. <br />
+          Would love your support!{' '}
+          <FavoriteIcon
+            sx={{ color: pink[400], verticalAlign: 'middle' }}
+            fontSize="small"
+          />
           <br />
           <br />
           <b>Backend:</b>
@@ -82,12 +103,12 @@ export default function AboutUsPage() {
         <Divider sx={{ my: 1 }} />
         <Typography variant="body2" align="center" color="text.secondary">
           Big thanks to{' '}
-          <Box sx={{ display: 'inline-block', color: 'error.main' }}>
+          <Box sx={{ display: 'inline-block', color: pink[400] }}>
             <SmartToyIcon sx={{ height: '1ch', width: '1ch' }} /> GitHub Copilot
           </Box>{' '}
           for writing 99% of code with{' '}
           <FavoriteIcon
-            sx={{ color: 'error.main', verticalAlign: 'middle' }}
+            sx={{ color: pink[400], verticalAlign: 'middle' }}
             fontSize="small"
           />
         </Typography>

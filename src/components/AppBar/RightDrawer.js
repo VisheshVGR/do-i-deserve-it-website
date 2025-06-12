@@ -24,8 +24,8 @@ import StarIcon from '@mui/icons-material/Star';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import SettingsIcon from '@mui/icons-material/Settings';
-import InfoIcon from '@mui/icons-material/Info';
 import FeedbackIcon from '@mui/icons-material/Feedback';
+import InfoIcon from '@mui/icons-material/Info';
 import { useThemeContext } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -67,7 +67,7 @@ export const routes = [
   },
   {
     path: '/target/step-form',
-    label: 'Step',
+    label: 'Upsert Step',
     icon: <TargetIcon sx={{ color: orange[600] }} />,
     nested: true,
     hidden: true,
@@ -108,6 +108,24 @@ export const routes = [
     label: 'Upsert Reminder',
     icon: <ReminderIcon sx={{ color: pink[400] }} />,
     nested: true,
+    hidden: true,
+  },
+  {
+    path: '/feedback',
+    label: 'Feedback',
+    icon: <FeedbackIcon sx={{ color: blue[400] }} />,
+    hidden: true,
+  },
+  {
+    path: '/feedback/feedback-form',
+    label: 'Upsert Feedback',
+    icon: <FeedbackIcon sx={{ color: blue[400] }} />,
+    hidden: true,
+  },
+  {
+    path: '/about-us',
+    label: 'About Us',
+    icon: <InfoIcon sx={{ color: purple[400] }} />,
     hidden: true,
   },
 ];
@@ -261,15 +279,15 @@ export default function RightDrawer({ open, onClose, onProfileClick }) {
                   cursor: 'pointer',
                   transition: 'background 0.2s',
                   '&:hover': {
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark'
-                      ? 'rgba(255,255,255,0.08)'
-                      : 'rgba(0,0,0,0.06)',
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'rgba(0,0,0,0.06)',
                   },
                 }}
               >
                 <ListItemIcon>
-                  <FeedbackIcon />
+                  <FeedbackIcon sx={{ color: blue[400] }}  />
                 </ListItemIcon>
                 <ListItemText primary="Feedback" />
               </ListItem>
@@ -281,15 +299,15 @@ export default function RightDrawer({ open, onClose, onProfileClick }) {
                   cursor: 'pointer',
                   transition: 'background 0.2s',
                   '&:hover': {
-                  backgroundColor: (theme) =>
-                    theme.palette.mode === 'dark'
-                      ? 'rgba(255,255,255,0.08)'
-                      : 'rgba(0,0,0,0.06)',
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.08)'
+                        : 'rgba(0,0,0,0.06)',
                   },
                 }}
               >
                 <ListItemIcon>
-                  <InfoIcon />
+                  <InfoIcon sx={{ color: purple[400] }}  />
                 </ListItemIcon>
                 <ListItemText primary="About Us" />
               </ListItem>

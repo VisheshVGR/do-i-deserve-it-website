@@ -1,9 +1,8 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useCookies } from 'react-cookie';
-import api from '@/utils/axios'; // Import axios utils
+import api from '@/utils/axios';
 
 const AuthContext = createContext();
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -11,8 +10,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [cookies, setCookie, removeCookie] = useCookies(['firebaseToken']);
-  const router = useRouter();
+  const [cookies, removeCookie] = useCookies(['firebaseToken']);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -23,10 +21,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await api.get('users/me', { // Use axios utils
+        const response = await api.get('users/me', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log ("UserData:", response.data);
         setUser(response.data);
       } catch (error) {
         console.error('Error fetching user:', error);

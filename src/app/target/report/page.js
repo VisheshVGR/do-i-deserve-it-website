@@ -24,6 +24,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  ResponsiveContainer,
 } from 'recharts';
 
 function Report() {
@@ -71,7 +72,7 @@ function Report() {
     setSelectedTab(newValue);
   };
 
-  const IconComp = ICON_MAP['Assessment'] || ICON_MAP['Star'];
+  const IconComp = ICON_MAP[stepDetails?.icon] || ICON_MAP['Assessment'] || ICON_MAP['Star'];
 
   // Function to get min and max dates from reportData
   const getMinMaxDates = (data) => {
@@ -113,7 +114,6 @@ function Report() {
   // Calculate total count and kudos
   const totalCount = reportData?.targetStepData?.reduce((sum, item) => sum + (item.count || 0), 0) || 0;
   const totalKudos = reportData?.targetStepData?.reduce((sum, item) => sum + (item.kudos || 0), 0) || 0;
-console.log("aa",stepDetails)
   return (
     <Box sx={{ p: 2, minHeight: '70vh' }}>
       {/* Step Title and Icon (similar to StepRow) */}
@@ -213,22 +213,26 @@ console.log("aa",stepDetails)
       {reportData ? (
         <Box>
           {/* Bar Chart */}
-          <BarChart
-            width={700}
-            height={300}
-            data={dataset}
-            margin={{
-              top: 20,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" tickFormatter={formatDate} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="count" fill="#388e3c" />
-            <Bar dataKey="kudos" fill="#ffc107" />
-          </BarChart>
+          {dataset.length === 0 ? (
+            <Typography align="center" sx={{ my: 4 }}>No data available for this period.</Typography>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={dataset}
+                margin={{
+                  top: 20,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tickFormatter={formatDate} />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="count" fill="#388e3c" />
+                <Bar dataKey="kudos" fill="#ffc107" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
           {/* Date Range */}
           <Box
             sx={{

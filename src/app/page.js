@@ -10,8 +10,7 @@ export default function HomePage() {
         <ul>
           <li>Lots of UI updates pending.</li>
           <li>Home page with elaborated data and links to GOTO pages will come.</li>
-          <li>Feedback / Bug section will come.</li>
-          <li>Report section is on the way.</li>
+          <li>Feel Free to share your views in Feedback section.</li>
         </ul>
       </main>
     </div>
