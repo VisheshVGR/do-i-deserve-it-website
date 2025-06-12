@@ -10,7 +10,8 @@ import { Container } from '@mui/material'; // Import Container
 
 export const metadata = {
   title: 'Do I Deserve It',
-  description: 'A modular app with dark and light mode',
+  description: 'Do I Deserve It App',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({ children }) {
@@ -31,7 +32,9 @@ export default function RootLayout({ children }) {
                   <UniversalLoader />
                   <CustomAppBar />
                   {/* Page Content */}
-                  <Container maxWidth="lg"> {/* Wrap children with Container */}
+                  <Container maxWidth="lg">
+                    {' '}
+                    {/* Wrap children with Container */}
                     {children}
                   </Container>
                 </SnackbarProviderWithUtils>
