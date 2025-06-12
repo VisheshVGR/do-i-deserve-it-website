@@ -211,7 +211,7 @@ function Target() {
       const isKudos = step.days &&
       !step.days.includes(todayShort) &&
       newValue > 0;
-      console.log("isKudosInc", isKudos, newValue);
+
       setStepInputs((inputs) => ({ ...inputs, [step.id]: newValue }));
       debouncedSaveStepData(step.id, newValue, isKudos);
       return { ...inputs, [step.id]: newValue };
@@ -225,7 +225,6 @@ function Target() {
       const isKudos = step.days &&
       !step.days.includes(todayShort) &&
       newValue > 0;
-      console.log("isKudosDec", isKudos, newValue);
 
       setStepInputs((inputs) => ({ ...inputs, [step.id]: newValue }));
       debouncedSaveStepData(step.id, newValue, isKudos);
@@ -741,7 +740,6 @@ function StepEditOrStatus({
             checked={!!count}
             onChange={(e) => {
               const newValue = e.target.checked ? 1 : 0;
-              console.log (newValue, isKudos);
               handleStepToggle(step.id, newValue, !isKudos);
             }}
             color="success"

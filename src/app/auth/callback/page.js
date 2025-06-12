@@ -17,7 +17,7 @@ export default function Callback() {
       // Extract the Firebase custom token from the query parameters
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
-      console.log('TOKEN:', token);
+      // console.log('TOKEN:', token);
 
       if (token) {
         try {

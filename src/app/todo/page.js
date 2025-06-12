@@ -264,8 +264,6 @@ function Todo() {
         ]);
         setTodos(todosRes.data || []);
         setHeadings(headingsRes.data || []);
-        console.log('todos', todosRes.data);
-        console.log('heading', headingsRes.data);
       } catch (err) {
         notify('Failed to load data', 'error');
       }
