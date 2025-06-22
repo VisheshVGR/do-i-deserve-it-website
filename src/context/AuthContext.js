@@ -10,11 +10,12 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [cookies, removeCookie] = useCookies(['firebaseToken']);
+  const [cookies, _, removeCookie] = useCookies(['firebaseToken']);
 
   useEffect(() => {
     const fetchUser = async () => {
       const token = cookies.firebaseToken;
+      // console.log ("TokenIn", cookies, token);
       if (!token) {
         setLoading(false);
         return;
@@ -25,9 +26,11 @@ export const AuthProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data);
+        // console.log ("UserUpdated");
       } catch (error) {
         console.error('Error fetching user:', error);
-        removeCookie('firebaseToken');
+        removeCookie('firebaseToken', { path: '/' });
+        // console.log("REMOVED TOKEN");
         setUser(null);
       } finally {
         setLoading(false);
@@ -43,7 +46,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    removeCookie('firebaseToken');
+        // console.log("REMOVED TOKEN");
+        removeCookie('firebaseToken', { path: '/' });
   };
 
   return (

@@ -29,6 +29,7 @@ export default function Callback() {
 
           // Save the Firebase token in cookies
           setCookie('firebaseToken', firebaseToken, { path: '/' });
+          // console.log ("firebaseToken:", firebaseToken);
 
           // Save user details in local storage
           const { uid, email, displayName, photoURL } = userCredential.user;

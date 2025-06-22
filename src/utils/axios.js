@@ -1,5 +1,4 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -13,7 +12,7 @@ const api = axios.create({
 // Request interceptor: add token
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('firebaseToken');
+    const token = getTokenFn ? getTokenFn() : null;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -25,12 +24,14 @@ api.interceptors.request.use(
 // Dependency injection for logout, notify, and router
 let logoutFn = null;
 let notifyFn = null;
-let routerObj = null;
+let routerObj = null; 
+let getTokenFn = null;
 
-export function injectAxiosUtils({ logout, notify, router }) {
+export function injectAxiosUtils({ logout, notify, router, getToken }) {
   logoutFn = logout;
   notifyFn = notify;
   routerObj = router;
+  getTokenFn = getToken;
 }
 
 // Response interceptor: handle invalid token
