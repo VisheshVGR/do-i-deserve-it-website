@@ -79,12 +79,18 @@ export const ThemeProvider = ({ children }) => {
       MuiListItem: {
         styleOverrides: {
           root: {
-            "&.Mui-selected": {
-              backgroundColor: mode === 'light' ? 'rgba(255,255,255,0.3)' : 'rgba(50,50,50,0.7)',
+            '&.Mui-selected': {
+              backgroundColor:
+                mode === 'light'
+                  ? 'rgba(255,255,255,0.3)'
+                  : 'rgba(50,50,50,0.7)',
             },
-            "&:hover": {
-              backgroundColor: mode === 'light' ? 'rgba(255,255,255,0.5)' : 'rgba(50,50,50,0.5)',
-            }
+            '&:hover': {
+              backgroundColor:
+                mode === 'light'
+                  ? 'rgba(255,255,255,0.5)'
+                  : 'rgba(50,50,50,0.5)',
+            },
           },
         },
       },
@@ -93,9 +99,8 @@ export const ThemeProvider = ({ children }) => {
           paper: {
             borderTopRightRadius: 0,
             borderBottomRightRadius: 0,
-            backgroundColor: mode === 'light'
-              ? 'rgba(255,255,255,0.6)'
-              : 'rgba(30,30,30,0.6)',
+            backgroundColor:
+              mode === 'light' ? 'rgba(255,255,255,0.6)' : 'rgba(30,30,30,0.6)',
             backdropFilter: 'blur(6px)',
           },
         },
@@ -104,9 +109,8 @@ export const ThemeProvider = ({ children }) => {
         styleOverrides: {
           paper: {
             borderRadius: 20,
-            backgroundColor: mode === 'light'
-              ? 'rgba(255,255,255,0.6)'
-              : 'rgba(30,30,30,0.6)',
+            backgroundColor:
+              mode === 'light' ? 'rgba(255,255,255,0.6)' : 'rgba(30,30,30,0.6)',
             backdropFilter: 'blur(6px)',
           },
         },
@@ -134,6 +138,13 @@ export const ThemeProvider = ({ children }) => {
             '&::before': {
               display: 'none',
             },
+          },
+        },
+      },
+      MuiFormControlLabel: {
+        styleOverrides: {
+          root: {
+            margin: 0, // Set default margin to 0
           },
         },
       },

@@ -120,8 +120,8 @@ function TodoHeadingAccordion({
       <AccordionDetails
         sx={{
           bgcolor: detailsBg,
-          borderBottomLeftRadius: '12px',
-          borderBottomRightRadius: '12px',
+          borderBottomLeftRadius: 1,
+          borderBottomRightRadius: 1,
         }}
       >
         {todos.length === 0 ? (
@@ -135,14 +135,12 @@ function TodoHeadingAccordion({
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  px: 2,
-                  py: 1,
                   transition: 'background 0.2s',
                   '&:hover': {
                     backgroundColor: 'action.hover',
                   },
                   cursor: 'default',
-                  borderRadius: 2,
+                  borderRadius: 1,
                 }}
               >
                 <Checkbox
@@ -341,7 +339,7 @@ function Todo() {
   };
 
   return (
-    <Box sx={{ p: 2, minHeight: '70vh', position: 'relative', mb: 8 }}>
+    <Box sx={{ minHeight: '70vh', position: 'relative', mb: 8 }}>
       {headings.length === 0 && todos.length === 0 ? (
         <Typography color="text.secondary" align="center" sx={{ mt: 8 }}>
           No todos yet. Add some to get started!

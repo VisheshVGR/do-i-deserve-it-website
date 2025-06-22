@@ -23,6 +23,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import DoneIcon from '@mui/icons-material/Done';
 import MenuIcon from '@mui/icons-material/Menu';
+import SettingsIcon from '@mui/icons-material/Settings';
 import withAuth from '@/utils/withAuth';
 import { useLoader } from '@/context/LoaderContext';
 import { useSnackbarUtils } from '@/context/SnackbarContext';
@@ -177,7 +178,7 @@ function DoIDeserveIt() {
       <SpeedDial
         ariaLabel="Do I Deserve It actions"
         sx={{ position: 'fixed', bottom: 32, right: 32 }}
-        icon={<MenuIcon />}
+        icon={<SettingsIcon />}
         open={speedDialOpen}
         onClose={() => setSpeedDialOpen(false)}
         onClick={() => setSpeedDialOpen((prev) => !prev)}

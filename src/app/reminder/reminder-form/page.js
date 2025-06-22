@@ -83,6 +83,7 @@ function ReminderForm() {
       await new Promise(resolve => setTimeout(resolve, 100)); // Small delay after navigation
       hideLoader();
     } catch (err) {
+      console.log ("err", err.response)
       notify(err.response?.data?.error || err.message || 'Failed to save reminder', 'error');
       hideLoader();
     }
@@ -116,13 +117,6 @@ function ReminderForm() {
     <Box sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '80vh', // Ensure it takes at least the full viewport height
-        paddingX: 2, // Add horizontal padding
-        maxWidth: 600,
-        mx: 'auto',
-        my: 6,
     }}>
       {/* <Typography variant="h5" gutterBottom>
         {id ? 'Edit Reminder' : 'Add Reminder'}
@@ -172,7 +166,7 @@ function ReminderForm() {
         {repeat === 'custom' && (
           <FormControl component="fieldset" margin="normal" sx={{ width: '100%' }}>
             <FormLabel component="legend">Days</FormLabel>
-            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+            <Box sx={{ display: 'flex', gap: 1, mt: 2, flexFlow: "row wrap" }}>
               {DAYS.map(day => (
                 <Button
                   key={day}

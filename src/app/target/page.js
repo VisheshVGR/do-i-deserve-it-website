@@ -27,7 +27,7 @@ import PublicIcon from '@mui/icons-material/Public';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SaveIcon from '@mui/icons-material/Save';
 import RemoveIcon from '@mui/icons-material/Remove';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import AddIcon from '@mui/icons-material/Add';
 import SettingsIcon from '@mui/icons-material/Settings';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -262,7 +262,7 @@ function Target() {
 
   // --- Main Render ---
   return (
-    <Box sx={{ p: 2, position: 'relative', minHeight: '70vh', mb: 8 }}>
+    <Box sx={{position: 'relative', minHeight: '70vh', mb: 8 }}>
       {/* Show "No data" if there are no headings/steps */}
       {data.length === 0 ? (
         <Box
@@ -426,7 +426,7 @@ export function HeadingAccordion({
           borderBottomRightRadius: '12px',
         }}
       >
-        <Box sx={{ py: 1 }}>
+        <Box>
           {/* Show "No steps" if there are no steps */}
           {steps.length === 0 ? (
             <Typography
@@ -442,7 +442,7 @@ export function HeadingAccordion({
             steps.map((step, idx) => (
               <Box
                 key={step.id}
-                sx={{ display: 'inline-block', mr: 2, width: '100%' }}
+                sx={{ display: 'inline-block', width: '100%' }}
               >
                 <StepComponent
                   step={step}
@@ -575,27 +575,26 @@ function StepRow({
       sx={{
         display: 'flex',
         alignItems: 'center',
-        px: 2,
+        overflow:"auto",
+        px: 1,
         py: 1,
         transition: 'background 0.2s',
         '&:hover': {
           backgroundColor: 'action.hover', // MUI's default hover color
         },
         cursor: 'default', // No pointer/click effect
-        borderRadius: 2,
+        borderRadius: 1,
       }}
     >
       {/* Icon with heading color */}
       <Box
         sx={{
-          mr: 2,
-          mt: hasDescription ? '2px' : 0,
+          mr: 1,
           display: 'flex',
           alignItems: 'center',
         }}
       >
         <IconComp
-          fontSize="large"
           sx={{ color: headingColor || 'primary.main' }}
         />
       </Box>
@@ -685,11 +684,11 @@ function StepEditOrStatus({
   // If step is suspended or completed, show status badge
   if (step.status === 'suspended' || step.status === 'completed') {
     return (
-      <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
+      <Box sx={{ ml: 1, display: 'flex', alignItems: 'center' }}>
         {step.status === 'completed' ? (
-          <CheckCircleIcon sx={{ color: 'success.main', mr: 0.5 }} />
+          <CheckCircleIcon sx={{ color: 'success.main'}} />
         ) : (
-          <WarningIcon sx={{ color: 'warning.dark', mr: 0.5 }} />
+          <WarningIcon sx={{ color: 'warning.dark'}} />
         )}
         {/* <Box
           component="span"
@@ -728,7 +727,6 @@ function StepEditOrStatus({
               ? 'warning.dark'
               : 'success.dark',
           minWidth: 60,
-          mr: 1,
         }}
       >
         {count === 0 ? 'Absent' : isKudos ? 'Kudos' : 'Present'}
@@ -766,18 +764,16 @@ function StepEditOrStatus({
         }
         // Label: Absent if 0, Kudos if bool kudos, Present otherwise
         label={count === 0 ? 'Absent' : isKudos ? 'Kudos' : 'Present'}
-        labelPlacement="start"
+        labelPlacement="bottom"
         sx={{
           '.MuiFormControlLabel-label': {
-            fontWeight: 700,
+            fontWeight: 600,
             color:
               count === 0
                 ? 'error.dark'
                 : isKudos
                 ? 'warning.dark'
                 : 'success.dark',
-            minWidth: 60,
-            mr: 1,
           },
         }}
       />
@@ -803,7 +799,7 @@ function StepEditOrStatus({
             : 'success.light',
           bgcolor: 'transparent',
           userSelect: 'none',
-          ml: 2,
+          ml: 1,
         }}
       >
         {count}
@@ -812,14 +808,15 @@ function StepEditOrStatus({
       <ButtonGroup
         variant="outlined"
         sx={{
-          borderRadius: 8,
+          borderRadius: 1,
+          minWidth: 103,
           bgcolor: isKudos
             ? 'warning.light'
             : count === 0
             ? 'error.light'
             : 'success.light',
           boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-          ml: 2,
+          ml: 1,
           overflow: 'hidden',
         }}
         disableElevation
@@ -831,15 +828,12 @@ function StepEditOrStatus({
           sx={{
             borderRadius: 0,
             bgcolor: 'background.paper',
-            borderRight: '1px solid',
-            borderColor: 'divider',
           }}
         >
           <RemoveIcon />
         </IconButton>
         <Box
           sx={{
-            px: 2,
             minWidth: 36,
             display: 'flex',
             alignItems: 'center',
@@ -855,16 +849,14 @@ function StepEditOrStatus({
         </Box>
         <IconButton
           size="small"
-          color="primary"
+          color="success"
           onClick={() => handleIncrement(step, todayShort)}
           sx={{
             borderRadius: 0,
             bgcolor: 'background.paper',
-            borderLeft: '1px solid',
-            borderColor: 'divider',
           }}
         >
-          <AddCircleIcon />
+          <AddIcon />
         </IconButton>
       </ButtonGroup>
     );

@@ -32,7 +32,7 @@ export default function RootLayout({ children }) {
                   <UniversalLoader />
                   <CustomAppBar />
                   {/* Page Content */}
-                  <Container maxWidth="lg">
+                  <Container maxWidth="lg" sx={{ py: 1 }}>
                     {' '}
                     {/* Wrap children with Container */}
                     {children}

@@ -33,7 +33,6 @@ export default function AboutUsPage() {
         alignItems: 'center',
         justifyContent: 'center',
         bgcolor: (theme) => theme.palette.background.default,
-        p: 2,
       }}
     >
       <Paper
@@ -41,8 +40,8 @@ export default function AboutUsPage() {
         sx={{
           maxWidth: 480,
           width: '100%',
-          p: 4,
-          borderRadius: 4,
+          p: 2,
+          borderRadius: 2,
           bgcolor: (theme) => theme.palette.background.paper,
         }}
       >

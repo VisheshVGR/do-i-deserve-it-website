@@ -107,13 +107,6 @@ function TodoForm() {
     <Box sx={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '80vh', // Ensure it takes at least the full viewport height
-        paddingX: 2, // Add horizontal padding
-        maxWidth: 400,
-        mx: 'auto',
-        my: 6,
     }}>
       {/* <Typography variant="h5" gutterBottom>
         {id ? 'Edit Todo' : 'Add Todo'}

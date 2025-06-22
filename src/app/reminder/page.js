@@ -22,6 +22,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import withAuth from '@/utils/withAuth';
+import SettingsIcon from '@mui/icons-material/Settings';
+
 import { useLoader } from '@/context/LoaderContext';
 import { useSnackbarUtils } from '@/context/SnackbarContext';
 import api from '@/utils/axios';
@@ -58,7 +60,9 @@ function Reminder() {
   const handleToggleReminder = async (id, currentStatus) => {
     showLoader();
     try {
-      await api.patch(`reminders/${id}/toggle`, { isReminderOn: !currentStatus });
+      await api.patch(`reminders/${id}/toggle`, {
+        isReminderOn: !currentStatus,
+      });
       notify('Reminder updated!', 'success');
       fetchReminders();
     } catch (err) {
@@ -71,11 +75,11 @@ function Reminder() {
   const getNextAlarmTime = (reminder) => {
     const now = new Date();
     const reminderTime = new Date(reminder.time);
-    
+
     if (reminder.repeat === 'none' && reminderTime < now) {
       return 'Expired';
     }
-    
+
     if (reminder.repeat === 'daily') {
       const today = new Date();
       today.setHours(reminderTime.getHours());
@@ -85,26 +89,38 @@ function Reminder() {
       }
       return today.toLocaleString();
     }
-    
+
     if (reminder.repeat === 'custom') {
       // Find next occurrence based on days
       const today = new Date();
-      const currentDay = today.toLocaleDateString('en-US', { weekday: 'short' });
+      const currentDay = today.toLocaleDateString('en-US', {
+        weekday: 'short',
+      });
       const dayIndex = reminder.days.indexOf(currentDay);
       if (dayIndex === -1) {
         return 'Next matching day';
       }
       return reminderTime.toLocaleString();
     }
-    
+
     return reminderTime.toLocaleString();
   };
 
   return (
-    <Box sx={{...pageContainerStyles, mb: 8}}>
-      <Typography>Still figuring out how to get Reminders / Notifications...from Server to YOU</Typography>
+    <Box sx={{ ...pageContainerStyles, mb: 8 }}>
+      <Typography>
+        Still figuring out how to get Reminders / Notifications...from Server to
+        YOU
+      </Typography>
       {reminders.length === 0 ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1,
+          }}
+        >
           <Typography variant="h6" color="text.secondary">
             No reminders yet. Add some to get started!
           </Typography>
@@ -118,7 +134,7 @@ function Reminder() {
                 sx={{
                   bgcolor: 'background.paper',
                   mb: 1,
-                  borderRadius: 2,
+                  borderRadius: 1,
                   '&:hover': {
                     bgcolor: 'action.hover',
                   },
@@ -127,55 +143,78 @@ function Reminder() {
                 <ListItemText
                   primary={reminder.title}
                   secondary={
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                       {reminder.description && (
-                        <Typography variant="body2">{reminder.description}</Typography>
+                        <Typography variant="body2">
+                          {reminder.description}
+                        </Typography>
                       )}
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          gap: 1,
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          mt: 2,
+                        }}
+                      >
                         <Chip
                           icon={<AccessTimeIcon />}
                           label={getNextAlarmTime(reminder)}
                           size="small"
-                          color={reminder.isReminderOn ? "primary" : "default"}
+                          color={reminder.isReminderOn ? 'primary' : 'default'}
                         />
                         {reminder.repeat !== 'none' && (
                           <Chip
                             icon={<RepeatIcon />}
-                            label={reminder.repeat === 'custom' ? 
-                              `Custom` : 
-                              // `Custom: ${reminder.days.join(', ')}` : 
-                              'Daily'}
+                            label={
+                              reminder.repeat === 'custom'
+                                ? `Custom`
+                                : // `Custom: ${reminder.days.join(', ')}` :
+                                  'Daily'
+                            }
                             size="small"
                             color="info"
                           />
                         )}
+                        <Box sx={{ flexGrow: 1 }}>
+                          <Box sx={{ display:"flex", justifyContent:"end" }}>
+                            {editMode ? (
+                              <IconButton
+                                edge="end"
+                                onClick={() =>
+                                  router.push(
+                                    `/reminder/reminder-form?id=${reminder.id}`
+                                  )
+                                }
+                                sx={{
+                                  color: 'primary.main',
+                                  '&:hover': {
+                                    bgcolor: 'primary.light',
+                                    color: 'primary.dark',
+                                  },
+                                }}
+                              >
+                                <EditIcon />
+                              </IconButton>
+                            ) : (
+                              <Switch
+                                edge="end"
+                                onChange={() =>
+                                  handleToggleReminder(
+                                    reminder.id,
+                                    reminder.isReminderOn
+                                  )
+                                }
+                                checked={reminder.isReminderOn}
+                              />
+                            )}
+                          </Box>
+                        </Box>
                       </Box>
                     </Box>
                   }
                 />
-                <ListItemSecondaryAction>
-                  {editMode ? (
-                    <IconButton
-                      edge="end"
-                      onClick={() => router.push(`/reminder/reminder-form?id=${reminder.id}`)}
-                      sx={{
-                        color: 'primary.main',
-                        '&:hover': {
-                          bgcolor: 'primary.light',
-                          color: 'primary.dark',
-                        },
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  ) : (
-                    <Switch
-                      edge="end"
-                      onChange={() => handleToggleReminder(reminder.id, reminder.isReminderOn)}
-                      checked={reminder.isReminderOn}
-                    />
-                  )}
-                </ListItemSecondaryAction>
               </ListItem>
             ))}
           </List>
@@ -186,7 +225,7 @@ function Reminder() {
       <SpeedDial
         ariaLabel="Reminder actions"
         sx={{ position: 'fixed', bottom: 32, right: 32 }}
-        icon={<MenuIcon />}
+        icon={<SettingsIcon />}
         open={speedDialOpen}
         onClose={() => setSpeedDialOpen(false)}
         onClick={() => setSpeedDialOpen((prev) => !prev)}
