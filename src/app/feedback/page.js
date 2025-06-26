@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import {
   Box,
   Chip,
-  CircularProgress,
   Tabs,
   Tab,
   Avatar,
@@ -13,6 +12,10 @@ import {
   IconButton,
   Typography,
   Paper,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -26,19 +29,38 @@ import moment from 'moment';
 
 const ADMIN_USER_UID = process.env.NEXT_PUBLIC_ADMIN_USER_UID;
 
+// Tag and status color maps
 const TAG_OPTIONS = [
-  { value: 'feedback', label: 'Feedback' },
-  { value: 'bug', label: 'Bug' },
-  { value: 'feature request', label: 'Feature Request' },
-  { value: 'ui / ux issue', label: 'UI / UX Issue' },
+  { value: 'feedback', label: 'Feedback', color: 'primary.main' },
+  { value: 'bug', label: 'Bug', color: 'error.main' },
+  { value: 'feature request', label: 'Feature Request', color: 'warning.main' },
+  { value: 'ui / ux issue', label: 'UI / UX Issue', color: 'info.main' },
 ];
 
 const STATUS_OPTIONS = [
-  { value: 'open', label: 'Open' },
-  { value: 'in progress', label: 'In Progress' },
-  { value: 'fixed', label: 'Fixed' },
-  { value: 'need more info', label: 'Need More Info' },
+  { value: 'open', label: 'Open', color: 'primary' },
+  { value: 'in progress', label: 'In Progress', color: 'warning' },
+  { value: 'fixed', label: 'Fixed', color: 'success' },
+  { value: 'need more info', label: 'Need More Info', color: 'info' },
 ];
+
+const getStatusColor = (status) =>
+  STATUS_OPTIONS.find((opt) => opt.value === status)?.color || 'default';
+
+const getTagColor = (tag) =>
+  TAG_OPTIONS.find((opt) => opt.value === tag)?.color || 'default';
+
+// Helper to convert Firestore Timestamp to JS Date
+function toDate(ts) {
+  if (!ts) return null;
+  if (ts instanceof Date) return ts;
+  if (typeof ts === 'object' && ('_seconds' in ts || 'seconds' in ts)) {
+    // Support both _seconds and seconds keys
+    const sec = ts._seconds ?? ts.seconds;
+    return new Date(sec * 1000);
+  }
+  return new Date(ts);
+}
 
 export default function FeedbackPage() {
   const [tab, setTab] = useState('my');
@@ -46,7 +68,11 @@ export default function FeedbackPage() {
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
   const [myFeedback, setMyFeedback] = useState([]);
   const [allFeedback, setAllFeedback] = useState([]);
-  const [allTab, setAllTab] = useState('all'); // NEW: for filtering in All Feedback
+  const [allTab, setAllTab] = useState('all');
+  const [myTab, setMyTab] = useState('all');
+  const [error, setError] = useState('');
+  const [tagFilter, setTagFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const { user } = useAuth();
   const { showLoader, hideLoader } = useLoader();
@@ -67,17 +93,58 @@ export default function FeedbackPage() {
       const myRes = all.filter((fb) => fb?.userId === user?.uid);
       setMyFeedback(myRes);
       setAllFeedback(all);
+      console.log (all);
+      all.forEach(fb => {
+        const formatDate = (dateVal) => {
+          let d;
+          // Firestore Timestamp objects have a toDate() method
+          if (dateVal && typeof dateVal.toDate === 'function') {
+            d = dateVal.toDate();
+          } else if (typeof dateVal === 'string' || typeof dateVal === 'number') {
+            d = new Date(dateVal);
+          } else {
+            return 'Invalid Date';
+          }
+          const day = d.getDate();
+          const month = d.toLocaleString('default', { month: 'short' });
+          const year = d.getFullYear();
+          let hours = d.getHours();
+          const minutes = d.getMinutes().toString().padStart(2, '0');
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          hours = hours % 12 || 12;
+          return `${day} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
+        };
+        console.log(
+          `ID: ${fb.id} | Created: ${new Date(fb.createdAt.seconds*1000)} | Updated: ${new Date(fb.updatedAt.seconds*1000) }`
+        );
+      });
     } catch {
       setError('Failed to load feedback');
     }
     hideLoader();
   };
 
+  // Sort by latest updatedAt date first
+  const sortByDateDesc = (arr) =>
+    [...arr].sort((a, b) => toDate(b.updatedAt) - toDate(a.updatedAt));
+
   // Filtered feedback for "All Feedback" tab
-  const filteredAllFeedback =
-    allTab === 'all'
-      ? allFeedback
-      : allFeedback.filter((fb) => fb.tag === allTab);
+  const filteredAllFeedback = sortByDateDesc(
+    allFeedback.filter(
+      (fb) =>
+        (tagFilter === 'all' || fb.tag === tagFilter) &&
+        (statusFilter === 'all' || fb.status === statusFilter)
+    )
+  );
+
+  // Filtered feedback for "My Feedback" tab
+  const filteredMyFeedback = sortByDateDesc(
+    myFeedback.filter(
+      (fb) =>
+        (tagFilter === 'all' || fb.tag === tagFilter) &&
+        (statusFilter === 'all' || fb.status === statusFilter)
+    )
+  );
 
   // Render feedback list
   const renderFeedbackList = (list, showUser = false) =>
@@ -103,9 +170,16 @@ export default function FeedbackPage() {
           {fb.description}
         </Typography>
         <Box display="flex" alignItems="center" gap={1} sx={{ mt: 2 }}>
-          <Chip label={fb.tag} size="small" />
-          <Chip label={fb.status} size="small" color="info" />
-          {/* Show edit icon for myFeedback, and for allFeedback if admin and editMode */}
+          <Chip
+            label={fb.tag}
+            size="small"
+            sx={{ bgcolor: getTagColor(fb.tag), color: 'white' }}
+          />
+          <Chip
+            label={fb.status}
+            size="small"
+            color={getStatusColor(fb.status)}
+          />
           {editMode && (!showUser || isAdmin) && (
             <IconButton
               size="small"
@@ -119,8 +193,8 @@ export default function FeedbackPage() {
             color="text.secondary"
             sx={{ display: 'block', ml: 'auto' }}
           >
-            Created: {moment(fb.createdAt).format('D MMM YY')} | Updated:{' '}
-            {moment(fb.updatedAt).format('D MMM YY')}
+            {/* Only show date, not time */}
+            Created: {moment(toDate(fb.createdAt)).format('D MMM YY')} | Updated: {moment(toDate(fb.updatedAt)).format('D MMM YY')}
           </Typography>
         </Box>
       </Paper>
@@ -138,41 +212,56 @@ export default function FeedbackPage() {
         <Tab label="All Feedback" value="all" />
       </Tabs>
 
-      {tab === 'my' && (
-        <>
-          {!myFeedback.length && !allFeedback.length ? (
-            <Typography align="center" color="text.secondary" sx={{ mt: 6 }}>
-              No feedback as of now, why don&apos;t you share your views?
-            </Typography>
-          ) : (
-            renderFeedbackList(myFeedback)
-          )}
-        </>
-      )}
-      {tab === 'all' && (
-        <>
-          {/* NEW: Filter tabs for All Feedback */}
-          <Tabs
-            value={allTab}
-            onChange={(_, v) => setAllTab(v)}
-            sx={{ mb: 2 }}
-            variant="scrollable"
-            scrollButtons="auto"
+      {/* Centered Select Filters */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 2 }}>
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>Tag</InputLabel>
+          <Select
+            value={tagFilter}
+            label="Tag"
+            onChange={(e) => setTagFilter(e.target.value)}
           >
-            <Tab label="All" value="all" />
-            <Tab label="Feedback" value="feedback" />
-            <Tab label="Bug" value="bug" />
-            <Tab label="Feature Request" value="feature request" />
-            <Tab label="UI / UX Issue" value="ui / ux issue" />
-          </Tabs>
-          {!filteredAllFeedback.length ? (
-            <Typography align="center" color="text.secondary" sx={{ mt: 6 }}>
-              No feedback as of now, why don&apos;t you share your views?
-            </Typography>
-          ) : (
-            renderFeedbackList(filteredAllFeedback, true)
-          )}
-        </>
+            <MenuItem value="all">All</MenuItem>
+            {TAG_OPTIONS.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={statusFilter}
+            label="Status"
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <MenuItem value="all">All</MenuItem>
+            {STATUS_OPTIONS.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      {tab === 'my' ? (
+        !filteredMyFeedback.length && !allFeedback.length ? (
+          <Typography align="center" color="text.secondary" sx={{ mt: 6 }}>
+            No feedback as of now, why don&apos;t you share your views?
+          </Typography>
+        ) : (
+          renderFeedbackList(filteredMyFeedback)
+        )
+      ) : (
+        !filteredAllFeedback.length ? (
+          <Typography align="center" color="text.secondary" sx={{ mt: 6 }}>
+            No feedback as of now, why don&apos;t you share your views?
+          </Typography>
+        ) : (
+          renderFeedbackList(filteredAllFeedback, true)
+        )
       )}
 
       {/* SpeedDial for actions */}
